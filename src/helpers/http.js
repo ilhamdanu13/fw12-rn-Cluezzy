@@ -7,7 +7,7 @@ const http = token => {
     headers.authorization = 'Bearer ' + token;
   }
   const instance = axios.create({
-    baseURL: 'http://192.168.171.14:8888',
+    baseURL: process.env.BACKEND_ENV,
     headers,
   });
   return instance;

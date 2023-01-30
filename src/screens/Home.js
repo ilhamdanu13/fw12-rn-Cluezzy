@@ -2,14 +2,7 @@
 /* eslint-disable react/self-closing-comp */
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable prettier/prettier */
-// color:
-// primarybg: '#e9ecf4'
-// secondarybg:'#0b2361'
-// primarybtn: '#f1554c'
-// secondarycolor: '#ef91a1' ->logo
-// tertiercolor: '#feb05f'
-// colortextblack: '#101e2b',
-// color text-grey: '#A0A3BD'
+// color
 import {
   ScrollView,
   View,
@@ -23,10 +16,7 @@ import React from 'react';
 import {useNavigation} from '@react-navigation/native';
 import Footer from '../components/Footer';
 import imageHome from '../../assets/images/image-home.png';
-import card1 from '../../assets/images/card-1.png';
-import card2 from '../../assets/images/card-2.png';
-import card3 from '../../assets/images/card-3.png';
-import card4 from '../../assets/images/card-4.png';
+
 import http from '../helpers/http';
 import TopNavbarUser from './TopNavbarUser';
 import {useSelector, useDispatch} from 'react-redux';
@@ -58,14 +48,14 @@ const Home = () => {
   }, []);
   const getNowShowing = async () => {
     const {data} = await http(token).get(
-      'http://192.168.171.14:8888/movies/now',
+      'https://fw12-backend-red.vercel.app/movies/now',
     );
     return data;
   };
 
   const getUpcoming = async () => {
     const {data} = await http(token).get(
-      'http://192.168.171.14:8888/movies/upcoming',
+      'https://fw12-backend-red.vercel.app/movies/upcoming',
     );
     return data;
   };
@@ -273,15 +263,15 @@ const Home = () => {
                         {char.genre}
                       </Text>
                     </View>
-                    <NativeBaseProvider>
-                      <Button
-                        onPress={() => navigation.navigate('MovieDetails')}
-                        size="sm"
-                        variant="outline"
-                        style={{borderColor: '#f1554c'}}>
-                        <Text style={{color: '#f1554c'}}>Details</Text>
-                      </Button>
-                    </NativeBaseProvider>
+                    <Button
+                      onPress={() =>
+                        navigation.navigate('MovieDetails', {id: char.id})
+                      }
+                      size="sm"
+                      variant="outline"
+                      style={{borderColor: '#f1554c'}}>
+                      <Text style={{color: '#f1554c'}}>Details</Text>
+                    </Button>
                   </View>
                 ))}
               </View>
@@ -294,7 +284,8 @@ const Home = () => {
             height: 400,
             paddingBottom: 48,
             marginBottom: 140,
-            elevation: 5,
+            elevation: 3,
+            borderWidth: 0,
           }}>
           <View
             style={{

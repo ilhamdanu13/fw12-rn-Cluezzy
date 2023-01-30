@@ -35,13 +35,6 @@ import {useDispatch} from 'react-redux';
 import {loginAction} from '../redux/actions/auth';
 import {set} from 'immer/dist/internal';
 
-// color:
-// primarybg: '#e9ecf4'
-// secondarybg:'#0b2361'
-// primarybtn: '#f1554c'
-// secondarycolor: '#ef91a1' ->logo
-// tertiercolor: '#feb05f'
-
 const styles = StyleSheet.create({
   wrapper: {
     paddingHorizontal: 24,
@@ -70,6 +63,7 @@ const styles = StyleSheet.create({
 // const phoneRegExpID = /^(^08)(\d{8,10})$/;
 const SignInSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Required'),
+  password: Yup.string().required('Required'),
 });
 const SignIn = () => {
   const [show, setShow] = React.useState(false);

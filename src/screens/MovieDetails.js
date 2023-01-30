@@ -18,10 +18,11 @@ import {
   useDisclose,
   HStack,
   Select,
+  Input,
 } from 'native-base';
 import React from 'react';
 import {useNavigation} from '@react-navigation/native';
-import {ScrollView, View, Text, Image} from 'react-native';
+import {ScrollView, View, Text, Image, Pressable} from 'react-native';
 import Icon from 'react-native-vector-icons/dist/Feather';
 import card1 from '../../assets/images/card-1.png';
 import ebu from '../../assets/images/ebu.png';
@@ -30,8 +31,9 @@ import Footer from '../components/Footer';
 import DatePicker from 'react-native-date-picker';
 import TopNavbarUser from './TopNavbarUser';
 import http from '../helpers/http';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import {useRoute} from '@react-navigation/native';
+import {chooseMovie} from '../redux/reducers/transaction';
 
 const MovieDetails = () => {
   const [selected, setSelected] = React.useState('');
@@ -40,19 +42,62 @@ const MovieDetails = () => {
   const [dateView, setDateView] = React.useState(false);
   const [date, setDate] = React.useState(new Date());
   const [movieDetail, setMovieDetail] = React.useState({});
+  const [cityList, setCityList] = React.useState([]);
+  const [city, setCity] = React.useState({});
+  const [schedule, setSchedule] = React.useState([]);
+  const [selectedTime, setSelectedTime] = React.useState('');
+  const [selectedCinema, setSelectedCinema] = React.useState(null);
+
   const token = useSelector(state => state.auth.token);
   const route = useRoute();
+  const dispatch = useDispatch();
 
   React.useEffect(() => {
     getMovieDetail();
+    getCinemas();
   }, []);
   const getMovieDetail = async () => {
     const {data} = await http(token).get(
-      'http://192.168.171.14:8888/movies/' + route.params.id,
+      'http://192.168.136.14:8888/movies/' + route.params.id,
     );
     setMovieDetail(data.results);
     // console.log(data);
   };
+
+  const getCinemas = async () => {
+    const {data} = await http(token).get('http://192.168.136.14:8888/cinemas');
+    setCityList(data.results);
+
+    if (data.results.length) {
+      setCity(data.results[0].name);
+    }
+  };
+
+  const getSchedule = async () => {
+    const {data} = await http(token).get(
+      'http://192.168.136.14:8888/movieSchedules',
+    );
+    setSchedule(data.results);
+    console.log(data);
+  };
+
+  const selectTime = (time, cinema) => {
+    setSelectedTime(time);
+    setSelectedCinema(cinema);
+  };
+
+  const book = () => {
+    dispatch(
+      chooseMovie({
+        movieId: route.params.id,
+        cinemaId: selectedCinema,
+        bookingDate: date,
+        bookingTime: selectedTime,
+      }),
+    );
+    navigation.navigate('OrderPage');
+  };
+
   return (
     <ScrollView>
       <TopNavbarUser />
@@ -293,9 +338,11 @@ const MovieDetails = () => {
                 </Button>
                 <Actionsheet isOpen={isOpen} onClose={onClose}>
                   <Actionsheet.Content>
-                    <Actionsheet.Item>Jakarta</Actionsheet.Item>
-                    <Actionsheet.Item>Semarang</Actionsheet.Item>
-                    <Actionsheet.Item>Medan</Actionsheet.Item>
+                    <Pressable>
+                      <Actionsheet.Item>Jakarta</Actionsheet.Item>
+                      <Actionsheet.Item>Semarang</Actionsheet.Item>
+                      <Actionsheet.Item>Medan</Actionsheet.Item>
+                    </Pressable>
                   </Actionsheet.Content>
                 </Actionsheet>
               </View>
@@ -357,7 +404,7 @@ const MovieDetails = () => {
                   </View>
                   <View>
                     <Button
-                      onPress={() => navigation.navigate('OrderPage')}
+                      onPress={book}
                       size="sm"
                       style={{backgroundColor: '#f1554c'}}>
                       BOOK NOW

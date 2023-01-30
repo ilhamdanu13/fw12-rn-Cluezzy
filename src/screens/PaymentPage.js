@@ -11,6 +11,9 @@ import Icon from 'react-native-vector-icons/dist/Feather';
 import google from '../../assets/images/google.png';
 import {useNavigation} from '@react-navigation/native';
 import TopNavbarUser from './TopNavbarUser';
+import {useSelector, useDispatch} from 'react-redux';
+import jwt_decode from 'jwt-decode';
+import http from '../helpers/http';
 // color:
 // primarybg: '#e9ecf4'z
 // secondarybg:'#0b2361'
@@ -21,7 +24,35 @@ import TopNavbarUser from './TopNavbarUser';
 // color text-grey: '#A0A3BD'
 
 const PaymentPage = () => {
+  const token = useSelector(state => state?.auth?.token);
+  const decode = jwt_decode(token);
+  const {id} = decode;
   const navigation = useNavigation();
+  const [bio, setBio] = React.useState({});
+  const [payment, setPayment] = React.useState([]);
+
+  React.useEffect(() => {
+    getBio().then(data => {
+      setBio(data?.results);
+    });
+    getPayment().then(data => {
+      setPayment(data?.results);
+    });
+  }, []);
+
+  const getBio = async () => {
+    const {data} = await http(token).get(
+      'http://192.168.136.14:8888/users/' + id,
+    );
+    return data;
+  };
+
+  const getPayment = async () => {
+    const {data} = await http(token).get(
+      'http://192.168.136.14:8888/paymentMethod',
+    );
+    return data;
+  };
   return (
     <ScrollView>
       <TopNavbarUser />
@@ -228,7 +259,7 @@ const PaymentPage = () => {
                   Full Name
                 </Text>
                 <TextInput
-                  placeholder="Jonas El Rodriguez"
+                  placeholder={bio.firstName + ' ' + bio.lastName}
                   style={{
                     borderWidth: 1,
                     borderColor: '#dedede',
@@ -247,7 +278,7 @@ const PaymentPage = () => {
                   Email
                 </Text>
                 <TextInput
-                  placeholder="jonasrodri123@gmail.com"
+                  placeholder={bio.email}
                   style={{
                     borderWidth: 1,
                     borderColor: '#dedede',
@@ -266,7 +297,7 @@ const PaymentPage = () => {
                   Phone Number
                 </Text>
                 <TextInput
-                  placeholder="081445687121"
+                  placeholder={bio.phoneNumber}
                   style={{
                     borderWidth: 1,
                     borderColor: '#dedede',

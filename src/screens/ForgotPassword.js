@@ -2,12 +2,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable prettier/prettier */
 /* eslint-disable react-native/no-inline-styles */
-// color:
-// primarybg: '#e9ecf4'
-// secondarybg:'#0b2361'
-// primarybtn: '#f1554c'
-// secondarycolor: '#ef91a1' ->logo
-// tertiercolor: '#feb05f'
 
 import React from 'react';
 import {
@@ -37,6 +31,9 @@ import * as Yup from 'yup';
 import YupPasword from 'yup-password';
 YupPasword(Yup);
 import {useNavigation} from '@react-navigation/native';
+import http from '../helpers/http';
+import {forgotPassword} from '../redux/actions/auth';
+import {useDispatch} from 'react-redux';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -68,10 +65,23 @@ const SignUpSchema = Yup.object().shape({
 });
 const ForgotPassword = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const [errMessage, setErrMessage] = React.useState('');
 
-  const getEmailProcess = () => {
-    navigation.navigate('SetPassword');
+  const getEmailProcess = async value => {
+    const cb = () => {
+      navigation.navigate('SetPassword', {value});
+    };
+    try {
+      const {data} = await dispatch(forgotPassword({...value, cb}));
+      if (data.payload.startsWith('Req')) {
+        setErrMessage(data.payload);
+      }
+    } catch (error) {
+      setErrMessage('Email not found');
+    }
   };
+
   return (
     <ScrollView>
       <NativeBaseProvider>
