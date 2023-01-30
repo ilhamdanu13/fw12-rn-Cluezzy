@@ -20,6 +20,9 @@ import {
   useDisclose,
   Icon,
   Pressable,
+  Select,
+  CheckIcon,
+  Box,
 } from 'native-base';
 import {useNavigation} from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/dist/Feather';
@@ -32,14 +35,6 @@ import TopNavbarUser from './TopNavbarUser';
 import http from '../helpers/http';
 import {useSelector} from 'react-redux';
 
-// color:
-// primarybg: '#e9ecf4'
-// secondarybg:'#0b2361'
-// primarybtn: '#f1554c'
-// secondarycolor: '#ef91a1' ->logo
-// tertiercolor: '#feb05f'
-// colortextblack: '#101e2b',
-// color text-grey: '#A0A3BD'
 const styles = StyleSheet.create({
   wrapper: {
     paddingTop: 54,
@@ -56,26 +51,40 @@ const ViewAll = () => {
   const token = useSelector(state => state?.auth?.token);
   const [selected, setSelected] = React.useState('');
   const [movies, setMovies] = React.useState({});
+  const [page, setPage] = React.useState(1);
+  const [sort, setSort] = React.useState('');
+  const [search, setSearch] = React.useState('');
   const {isOpen, onOpen, onClose} = useDisclose();
   const navigation = useNavigation();
+
+  const nextPage = () => {
+    setPage(page + 1);
+  };
+
+  const prevPage = () => {
+    setPage(page - 1);
+  };
 
   React.useEffect(() => {
     getMovies().then(data => {
       setMovies(data);
     });
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, sort, search]);
 
   const getMovies = async () => {
-    const {data} = await http(token).get('http://192.168.171.14:8888/movies');
+    const {data} = await http(token).get(
+      `https://fw12-backend-red.vercel.app/movies?page=${page}&limit=4&search=${search}&sortBy=title&sort=${sort}`,
+    );
     return data;
   };
   return (
     <ScrollView style={styles.wrapper}>
       <TopNavbarUser />
       <View>
-        <View style={{paddingHorizontal: 24, paddingTop: 48, marginBottom: 20}}>
+        <View style={{paddingTop: 48, marginBottom: 20}}>
           <View>
-            <View>
+            <View style={{paddingHorizontal: 10}}>
               <View style={{marginBottom: 12}}>
                 <Text
                   style={{color: '#101e2b', fontSize: 18, fontWeight: '600'}}>
@@ -88,27 +97,30 @@ const ViewAll = () => {
                   alignItems: 'center',
                   marginBottom: 19,
                 }}>
-                <Button
-                  onPress={onOpen}
-                  _pressed={{bg: 'warmGray.100'}}
+                <Box
                   bg={'white'}
-                  width={'100px'}
-                  height={'12'}
                   borderRadius={16}
-                  borderWidth={1}
-                  borderColor={'#DEDEDE'}>
-                  <Text style={{color: '#A0A3BD'}}>Sort</Text>
-                </Button>
-                <Actionsheet isOpen={isOpen} onClose={onClose}>
-                  <Actionsheet.Content>
-                    <Actionsheet.Item>By 1</Actionsheet.Item>
-                    <Actionsheet.Item>By 2</Actionsheet.Item>
-                    <Actionsheet.Item>By 3</Actionsheet.Item>
-                  </Actionsheet.Content>
-                </Actionsheet>
+                  marginRight={12}
+                  flexGrow={1}>
+                  <Select
+                    selectedValue={sort}
+                    onValueChange={value => setSort(value)}
+                    minWidth="100"
+                    placeholder="Sort"
+                    fontSize="14"
+                    borderRadius="16"
+                    _selectedItem={{
+                      bg: '#f1554c',
+                      endIcon: <CheckIcon size={2} />,
+                    }}>
+                    <Select.Item label="A-Z" value="ASC" />
+                    <Select.Item label="Z-A" value="DESC" />
+                  </Select>
+                </Box>
 
                 <View>
                   <TextInput
+                    onChangeText={value => setSearch(value)}
                     placeholder="Search Movie Name ..."
                     style={{
                       borderColor: '#DEDEDE',
@@ -122,7 +134,9 @@ const ViewAll = () => {
               </View>
             </View>
             <ScrollView horizontal>
-              <HStack space={2} style={{marginBottom: 32}}>
+              <HStack
+                space={2}
+                style={{marginBottom: 32, marginHorizontal: 10}}>
                 {[
                   'September',
                   'October',
@@ -150,11 +164,12 @@ const ViewAll = () => {
                 ))}
               </HStack>
             </ScrollView>
-            <ScrollView horizontal>
+            <ScrollView style={{paddingLeft: 14}}>
               <View
                 style={{
                   flexDirection: 'row',
                   paddingBottom: 56,
+                  flexWrap: 'wrap',
                 }}>
                 {movies?.results?.map(char => (
                   <View
@@ -165,6 +180,7 @@ const ViewAll = () => {
                       padding: 16,
                       borderRadius: 4,
                       marginRight: 16,
+                      marginBottom: 16,
                     }}>
                     <Image
                       source={{uri: char.picture}}
@@ -203,7 +219,9 @@ const ViewAll = () => {
                     </View>
 
                     <Button
-                      onPress={() => navigation.navigate('MovieDetails')}
+                      onPress={() =>
+                        navigation.navigate('MovieDetails', {id: char.id})
+                      }
                       size="sm"
                       variant="outline"
                       style={{borderColor: '#f1554c'}}>
@@ -215,48 +233,51 @@ const ViewAll = () => {
             </ScrollView>
           </View>
         </View>
-        <NativeBaseProvider>
-          <Center style={{marginBottom: 58}}>
-            <HStack>
-              <View
-                style={{
-                  padding: 20,
-                  backgroundColor: 'white',
-                  borderRadius: 8,
-                  marginRight: 6,
-                }}>
-                <Text style={{fontSize: 18}}>1</Text>
-              </View>
-              <View
-                style={{
-                  padding: 20,
-                  backgroundColor: 'white',
-                  borderRadius: 8,
-                  marginRight: 6,
-                }}>
-                <Text style={{fontSize: 18}}>2</Text>
-              </View>
-              <View
-                style={{
-                  padding: 20,
-                  backgroundColor: 'white',
-                  borderRadius: 8,
-                  marginRight: 6,
-                }}>
-                <Text style={{fontSize: 18}}>3</Text>
-              </View>
-              <View
-                style={{
-                  padding: 20,
-                  backgroundColor: 'white',
-                  borderRadius: 8,
-                  marginRight: 6,
-                }}>
-                <Text style={{fontSize: 18}}>4</Text>
-              </View>
-            </HStack>
-          </Center>
-        </NativeBaseProvider>
+
+        <Center style={{marginBottom: 58}}>
+          <HStack>
+            <Pressable
+              onPress={() => setPage(1)}
+              style={{
+                padding: 20,
+                backgroundColor: 'white',
+                borderRadius: 8,
+                marginRight: 6,
+              }}>
+              <Text style={{fontSize: 18}}>1</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setPage(2)}
+              style={{
+                padding: 20,
+                backgroundColor: 'white',
+                borderRadius: 8,
+                marginRight: 6,
+              }}>
+              <Text style={{fontSize: 18}}>2</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setPage(3)}
+              style={{
+                padding: 20,
+                backgroundColor: 'white',
+                borderRadius: 8,
+                marginRight: 6,
+              }}>
+              <Text style={{fontSize: 18}}>3</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setPage(4)}
+              style={{
+                padding: 20,
+                backgroundColor: 'white',
+                borderRadius: 8,
+                marginRight: 6,
+              }}>
+              <Text style={{fontSize: 18}}>4</Text>
+            </Pressable>
+          </HStack>
+        </Center>
 
         <Footer />
       </View>
