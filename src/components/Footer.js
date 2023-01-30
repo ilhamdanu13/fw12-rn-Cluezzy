@@ -27,7 +27,7 @@ const Footer = () => {
         paddingHorizontal: 24,
         backgroundColor: 'white',
         paddingTop: 75,
-        marginBottom: 50,
+        // marginBottom: 50,
       }}>
       <View style={{marginBottom: 23}}>
         <Text style={styles.logotext}>Cluezzy</Text>
