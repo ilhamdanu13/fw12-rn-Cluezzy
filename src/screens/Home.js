@@ -2,7 +2,6 @@
 /* eslint-disable react/self-closing-comp */
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable prettier/prettier */
-// color
 import {
   ScrollView,
   View,
@@ -48,14 +47,14 @@ const Home = () => {
   }, []);
   const getNowShowing = async () => {
     const {data} = await http(token).get(
-      'https://fw12-backend-red.vercel.app/movies/now',
+      'https://fw12-backend-shr6.vercel.app/movies/now',
     );
     return data;
   };
 
   const getUpcoming = async () => {
     const {data} = await http(token).get(
-      'https://fw12-backend-red.vercel.app/movies/upcoming',
+      'https://fw12-backend-shr6.vercel.app/movies/upcoming',
     );
     return data;
   };
@@ -116,8 +115,8 @@ const Home = () => {
                   flexDirection: 'row',
                   paddingBottom: 56,
                 }}>
-                {nowShowing?.results?.map(char => (
-                  <Pressable onPress={() => toggleFocus(char.id)}>
+                {nowShowing?.results?.map((char, i) => (
+                  <Pressable onPress={() => toggleFocus(char.id)} key={i}>
                     <Box
                       borderWidth="0.5"
                       padding="4"
@@ -226,8 +225,9 @@ const Home = () => {
                   flexDirection: 'row',
                   paddingBottom: 56,
                 }}>
-                {upcoming?.results?.map(char => (
+                {upcoming?.results?.map((char, i) => (
                   <View
+                    key={i}
                     style={{
                       borderWidth: 0.5,
                       borderColor: 'white',

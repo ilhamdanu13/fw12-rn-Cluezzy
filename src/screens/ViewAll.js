@@ -74,7 +74,7 @@ const ViewAll = () => {
 
   const getMovies = async () => {
     const {data} = await http(token).get(
-      `https://fw12-backend-red.vercel.app/movies?page=${page}&limit=4&search=${search}&sortBy=title&sort=${sort}`,
+      `https://fw12-backend-shr6.vercel.app/movies?page=${page}&limit=4&search=${search}&sortBy=title&sort=${sort}`,
     );
     return data;
   };
@@ -171,8 +171,9 @@ const ViewAll = () => {
                   paddingBottom: 56,
                   flexWrap: 'wrap',
                 }}>
-                {movies?.results?.map(char => (
+                {movies?.results?.map((char, i) => (
                   <View
+                    key={i}
                     style={{
                       borderWidth: 1,
                       borderColor: '#DEDEDE',

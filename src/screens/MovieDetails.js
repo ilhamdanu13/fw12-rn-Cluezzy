@@ -2,14 +2,7 @@
 /* eslint-disable react/self-closing-comp */
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable prettier/prettier */
-// color:
-// primarybg: '#e9ecf4'
-// secondarybg:'#0b2361'
-// primarybtn: '#f1554c'
-// secondarycolor: '#ef91a1' ->logo
-// tertiercolor: '#feb05f'
-// colortextblack: '#101e2b',
-// color text-grey: '#A0A3BD'
+
 import {
   NativeBaseProvider,
   Center,
@@ -18,11 +11,15 @@ import {
   useDisclose,
   HStack,
   Select,
+  Image,
   Input,
+  Box,
+  Pressable,
+  Text,
 } from 'native-base';
 import React from 'react';
 import {useNavigation} from '@react-navigation/native';
-import {ScrollView, View, Text, Image, Pressable} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import Icon from 'react-native-vector-icons/dist/Feather';
 import card1 from '../../assets/images/card-1.png';
 import ebu from '../../assets/images/ebu.png';
@@ -34,9 +31,13 @@ import http from '../helpers/http';
 import {useSelector, useDispatch} from 'react-redux';
 import {useRoute} from '@react-navigation/native';
 import {chooseMovie} from '../redux/reducers/transaction';
+import moment from 'moment';
+import jwtDecode from 'jwt-decode';
 
 const MovieDetails = () => {
-  const [selected, setSelected] = React.useState('');
+  const token = useSelector(state => state.auth.token);
+  const decode = jwtDecode(token);
+  const userId = decode.id;
   const {isOpen, onOpen, onClose} = useDisclose();
   const navigation = useNavigation();
   const [dateView, setDateView] = React.useState(false);
@@ -44,28 +45,45 @@ const MovieDetails = () => {
   const [movieDetail, setMovieDetail] = React.useState({});
   const [cityList, setCityList] = React.useState([]);
   const [city, setCity] = React.useState({});
-  const [schedule, setSchedule] = React.useState([]);
+  const [schedule, setSchedule] = React.useState({});
   const [selectedTime, setSelectedTime] = React.useState('');
   const [selectedCinema, setSelectedCinema] = React.useState(null);
+  const [selectedCinemaPicture, setSelectedCinemaPicture] = React.useState('');
+  const [selectedMovie, setSelectedMovie] = React.useState('');
+  const [selectedGenre, setSelectedGenre] = React.useState('');
+  const [selectedPrice, setSelectedPrice] = React.useState('');
 
-  const token = useSelector(state => state.auth.token);
   const route = useRoute();
   const dispatch = useDispatch();
+
+  //release date
+  let NewDate = new Date(movieDetail?.releaseDate).toDateString();
+  let month = NewDate.split(' ')[1];
+  let dateNew = NewDate.split(' ')[2];
+  let year = NewDate.split(' ')[3];
+
+  //duration
+  let duration = movieDetail?.duration;
+  let hour = String(duration).split(':').slice(0, 1).join(':');
+  let minute = String(duration).split(':')[1];
 
   React.useEffect(() => {
     getMovieDetail();
     getCinemas();
+    getSchedule();
   }, []);
   const getMovieDetail = async () => {
     const {data} = await http(token).get(
-      'http://192.168.136.14:8888/movies/' + route.params.id,
+      'https://fw12-backend-shr6.vercel.app/movies/' + route.params.id,
     );
     setMovieDetail(data.results);
     // console.log(data);
   };
 
   const getCinemas = async () => {
-    const {data} = await http(token).get('http://192.168.136.14:8888/cinemas');
+    const {data} = await http(token).get(
+      'https://fw12-backend-shr6.vercel.app/cinemas',
+    );
     setCityList(data.results);
 
     if (data.results.length) {
@@ -75,24 +93,33 @@ const MovieDetails = () => {
 
   const getSchedule = async () => {
     const {data} = await http(token).get(
-      'http://192.168.136.14:8888/movieSchedules',
+      'https://fw12-backend-shr6.vercel.app/movieSchedules/' + route.params.id,
     );
     setSchedule(data.results);
     console.log(data);
   };
 
-  const selectTime = (time, cinema) => {
+  const selectTime = (time, cinema, price, title, cinemaPicture, genre) => {
     setSelectedTime(time);
     setSelectedCinema(cinema);
+    setSelectedPrice(price);
+    setSelectedMovie(title);
+    setSelectedCinemaPicture(cinemaPicture);
+    setSelectedGenre(genre);
   };
 
   const book = () => {
     dispatch(
       chooseMovie({
+        userId: userId,
         movieId: route.params.id,
         cinemaId: selectedCinema,
         bookingDate: date,
         bookingTime: selectedTime,
+        price: selectedPrice,
+        movieName: selectedMovie,
+        cinemaPicture: selectedCinemaPicture,
+        genre: selectedGenre,
       }),
     );
     navigation.navigate('OrderPage');
@@ -114,6 +141,7 @@ const MovieDetails = () => {
               }}>
               <Image
                 source={{uri: movieDetail.picture}}
+                alt="movie"
                 style={{width: 159, height: 244, borderRadius: 2}}
               />
             </View>
@@ -144,7 +172,7 @@ const MovieDetails = () => {
               flexDirection: 'row',
               marginBottom: 50,
             }}>
-            <View style={{marginRight: 60}}>
+            <View style={{marginRight: 82}}>
               <Text
                 style={{
                   color: '#8692A6',
@@ -160,7 +188,7 @@ const MovieDetails = () => {
                   fontSize: 16,
                   color: '#101e2b',
                 }}>
-                {movieDetail.releaseDate}
+                {month} {dateNew}, {year}
               </Text>
             </View>
             <View>
@@ -189,7 +217,7 @@ const MovieDetails = () => {
               flexDirection: 'row',
               marginBottom: 50,
             }}>
-            <View style={{marginRight: 60}}>
+            <View style={{marginRight: 100}}>
               <Text
                 style={{
                   color: '#8692A6',
@@ -204,8 +232,9 @@ const MovieDetails = () => {
                   fontFamily: 'Mulish-Medium',
                   fontSize: 16,
                   color: '#101e2b',
+                  width: 82,
                 }}>
-                {movieDetail.duration}
+                {hour} Hour {minute} Minutes
               </Text>
             </View>
             <View>
@@ -225,7 +254,7 @@ const MovieDetails = () => {
                   color: '#101e2b',
                   width: 150,
                 }}>
-                {movieDetail.casts}
+                {movieDetail.casts} ...,
               </Text>
             </View>
           </View>
@@ -347,7 +376,7 @@ const MovieDetails = () => {
                 </Actionsheet>
               </View>
             </Center>
-            <View style={{marginBottom: 48}}>
+            <View style={{marginBottom: 10}}>
               <View>
                 <View
                   style={{
@@ -358,12 +387,22 @@ const MovieDetails = () => {
                     paddingHorizontal: 31,
                     marginBottom: 32,
                   }}>
-                  <View style={{marginBottom: 23, alignItems: 'center'}}>
+                  <View
+                    style={{
+                      marginBottom: 23,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}>
                     <Image
-                      source={cinema}
-                      width={20}
-                      style={{marginBottom: 12}}
+                      source={{
+                        uri: schedule.cinemapicture,
+                      }}
+                      alt="cinema"
+                      size={6}
+                      width={32}
+                      style={{marginBottom: 10}}
                     />
+                    <Text style={{color: '#6E7191'}}>{schedule.cinema}</Text>
                     <Text
                       style={{
                         color: '#AAAAAA',
@@ -372,7 +411,17 @@ const MovieDetails = () => {
                         textAlign: 'center',
                         width: 212,
                       }}>
-                      Whatever street No.12, South Purwokerto
+                      {schedule.address}
+                    </Text>
+                    <Text
+                      style={{
+                        color: '#AAAAAA',
+                        fontFamily: 'Mulish-Medium',
+                        fontSize: 13,
+                        textAlign: 'center',
+                        width: 212,
+                      }}>
+                      {schedule.city}
                     </Text>
                   </View>
                   <View
@@ -381,8 +430,45 @@ const MovieDetails = () => {
                       borderBottomColor: '#dedede',
                       marginBottom: 16,
                     }}></View>
-                  <View style={{marginBottom: 24}}>
-                    <Text>08:30am</Text>
+                  <View
+                    style={{
+                      marginBottom: 24,
+                      flexDirection: 'row',
+                      flexWrap: 'wrap',
+                    }}>
+                    {schedule?.times?.map((time, i) => (
+                      <Pressable
+                        key={i}
+                        marginBottom={2}
+                        backgroundColor={'white'}
+                        onPress={() =>
+                          selectTime(
+                            time,
+                            schedule.cinema,
+                            schedule.price,
+                            schedule.title,
+                            schedule.cinemapicture,
+                            movieDetail.genre,
+                          )
+                        }>
+                        <Text
+                          style={{
+                            marginRight: 28,
+                            color:
+                              schedule.cinema === selectedCinema &&
+                              time === selectedTime
+                                ? '#f1554c'
+                                : 'black',
+                            fontWeight:
+                              schedule.cinema === selectedCinema &&
+                              time === selectedTime
+                                ? 'bold'
+                                : 'normal',
+                          }}>
+                          {time}
+                        </Text>
+                      </Pressable>
+                    ))}
                   </View>
                   <View style={{flexDirection: 'row', marginBottom: 25}}>
                     <Text
@@ -399,7 +485,7 @@ const MovieDetails = () => {
                         fontWeight: '600',
                         fontFamily: 'Mulish-Medium',
                       }}>
-                      $10.00/seat
+                      IDR.{schedule.price}/seat
                     </Text>
                   </View>
                   <View>
@@ -410,64 +496,6 @@ const MovieDetails = () => {
                       BOOK NOW
                     </Button>
                   </View>
-                </View>
-              </View>
-              <View
-                style={{
-                  backgroundColor: 'white',
-                  paddingHorizontal: 31,
-                  paddingTop: 30,
-                  paddingBottom: 32,
-                  marginBottom: 32,
-                  borderRadius: 8,
-                }}>
-                <View style={{marginBottom: 23, alignItems: 'center'}}>
-                  <Image source={ebu} width={20} style={{marginBottom: 12}} />
-                  <Text
-                    style={{
-                      color: '#AAAAAA',
-                      fontFamily: 'Mulish-Medium',
-                      fontSize: 13,
-                      textAlign: 'center',
-                      width: 212,
-                    }}>
-                    Whatever street No.12, South Purwokerto
-                  </Text>
-                </View>
-                <View
-                  style={{
-                    borderBottomWidth: 1,
-                    borderBottomColor: '#dedede',
-                    marginBottom: 16,
-                  }}></View>
-                <View style={{marginBottom: 24}}>
-                  <Text>08:30am</Text>
-                </View>
-                <View style={{flexDirection: 'row', marginBottom: 25}}>
-                  <Text
-                    style={{
-                      color: '#101e2b',
-                      fontFamily: 'Mulish-Medium',
-                      flexGrow: 1,
-                    }}>
-                    Price
-                  </Text>
-                  <Text
-                    style={{
-                      color: '#101e2b',
-                      fontWeight: '600',
-                      fontFamily: 'Mulish-Medium',
-                    }}>
-                    $10.00/seat
-                  </Text>
-                </View>
-                <View>
-                  <Button
-                    onPress={() => navigation.navigate('OrderPage')}
-                    size="sm"
-                    style={{backgroundColor: '#f1554c'}}>
-                    BOOK NOW
-                  </Button>
                 </View>
               </View>
             </View>

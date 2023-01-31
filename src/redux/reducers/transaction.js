@@ -3,15 +3,21 @@ import {createSlice} from '@reduxjs/toolkit';
 import {trxAction} from '../actions/transaction';
 
 const initialState = {
+  userId: '',
   movieId: '',
-  cinemaId: '',
+  movieName: '',
+  cinema: '',
+  cinemaPicture: '',
   bookingDate: '',
+  bookingTime: '',
+  price: '',
   seatNum: [],
   fullName: '',
   email: '',
-  userId: '',
   phoneNumber: '',
   paymentMethodId: '',
+  totalPrice: '',
+  genre: '',
 };
 
 const transactionReducer = createSlice({
@@ -20,28 +26,41 @@ const transactionReducer = createSlice({
   reducers: {
     chooseMovie: (state, {payload}) => {
       console.log(payload);
+      state.userId = payload.userId;
       state.movieId = payload.movieId;
-      state.cinemaId = payload.cinemaId;
+      state.cinema = payload.cinemaId;
+      state.cinemaPicture = payload.cinemaPicture;
+      state.price = payload.price;
       state.bookingDate = payload.bookingDate;
+      state.bookingTime = payload.bookingTime;
+      state.chooseMovie = payload.movieName;
+      state.genre = payload.genre;
     },
     chooseSeat: (state, {payload}) => {
       state.seatNum = payload.seatNum;
+      state.totalPrice = payload.totalPrice;
     },
-    // choosePayment: (state, action) => {
-    //   const { paymentMethodId, fullName, email, phoneNumber, cb } = action.payload;
-    //   cb();
-    //   return (state = {
-    //     ...state,
-    //     ...{ paymentMethodId, fullName, email, phoneNumber },
-    //   });
-    // },
+    choosePayment: (state, action) => {
+      const {paymentMethodId, fullName, email, phoneNumber, cb} =
+        action.payload;
+      cb();
+      return (state = {
+        ...state,
+        ...{paymentMethodId, fullName, email, phoneNumber},
+      });
+    },
+  },
+  extraReducers: build => {
+    build.addCase(trxAction.fulfilled, (state, action) => {
+      state = {
+        ...state,
+        ...action.payload,
+      };
+    });
   },
 });
 
-export const {
-  chooseMovie,
-  chooseSeat,
-  // choosePayment
-} = transactionReducer.actions;
+export const {chooseMovie, chooseSeat, choosePayment} =
+  transactionReducer.actions;
 
 export default transactionReducer.reducer;

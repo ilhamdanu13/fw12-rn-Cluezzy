@@ -1,16 +1,9 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable no-unused-vars */
 /* eslint-disable prettier/prettier */
 /* eslint-disable react/self-closing-comp */
 /* eslint-disable prettier/prettier */
 /* eslint-disable react-native/no-inline-styles */
-// color:
-// primarybg: '#e9ecf4'
-// secondarybg:'#0b2361'
-// primarybtn: '#f1554c'
-// secondarycolor: '#ef91a1' ->logo
-// tertiercolor: '#feb05f'
-// colortextblack: '#101e2b',
-// color text-grey: '#A0A3BD'
 import React from 'react';
 import {View, Text, ScrollView, Image, TextInput} from 'react-native';
 import {
@@ -37,8 +30,8 @@ import Feather from 'react-native-vector-icons/dist/Feather';
 import {Formik} from 'formik';
 import * as Yup from 'yup';
 import YupPasword from 'yup-password';
-import {launchImageLibrary} from 'react-native-image-picker';
-import {ControlledPropUpdatedSelectedItem} from 'native-base/lib/typescript/components/composites/Typeahead/useTypeahead/types';
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+
 import {logoutAction} from '../redux/reducers/auth';
 
 YupPasword(Yup);
@@ -57,9 +50,12 @@ const ProfilePage = () => {
   const token = useSelector(state => state?.auth?.token);
   const decode = jwt_decode(token);
   const {id} = decode;
+  const [alertSuccessPassword, setAlertSuccessPassword] = React.useState(false);
+  const [alertSuccess, setAlertSuccess] = React.useState(false);
   const [bio, setBio] = React.useState({});
   const [show, setShow] = React.useState(false);
   const [showConfirm, setShowConfirm] = React.useState(false);
+  const [uploadOption, setUploadOption] = React.useState(false);
   const navigation = useNavigation();
   const route = useRoute();
   const dispatch = useDispatch();
@@ -71,7 +67,7 @@ const ProfilePage = () => {
 
   const getBio = async () => {
     const {data} = await http(token).get(
-      'http://192.168.171.14:8888/users/' + id,
+      'https://fw12-backend-shr6.vercel.app/profile/' + id,
     );
     return data;
   };
@@ -83,21 +79,31 @@ const ProfilePage = () => {
     setPreview(result.assets[0]);
   };
 
+  const openCamera = async () => {
+    const result = await launchCamera();
+
+    setPreview(result.assets[0]);
+  };
+
   const uploadImage = async () => {
     try {
-      if (preview?.filename) {
+      if (preview?.fileName) {
         const obj = {
-          name: preview.filename,
+          name: preview.fileName,
           type: preview.type,
           uri: preview.uri,
         };
         const form = new FormData();
         form.append('picture', obj);
-        const {data} = await http().post('assets/upload/', form, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
+        const {data} = await http(token).patch(
+          `https://fw12-backend-shr6.vercel.app/profile/${id}/update/`,
+          form,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
           },
-        });
+        );
         alert(data.message);
       } else {
         alert('Please choose image first');
@@ -107,7 +113,6 @@ const ProfilePage = () => {
     }
   };
 
-  const [alertSuccess, setAlertSuccess] = React.useState(false);
   const updateProfile = async value => {
     try {
       const values = {
@@ -119,7 +124,7 @@ const ProfilePage = () => {
         confirmPassword: value.confirmPassword,
       };
       await http(token).patch(
-        `http://192.168.171.14:8888/profile/${id}/update/`,
+        `https://fw12-backend-shr6.vercel.app/profile/${id}/update/`,
         values,
       );
       setAlertSuccess(true);
@@ -128,9 +133,26 @@ const ProfilePage = () => {
     }
   };
 
+  const updatePassword = async value => {
+    try {
+      const values = {
+        password: value.password,
+        confirmPassword: value.confirmPassword,
+      };
+      await http(token).patch(
+        `https://fw12-backend-shr6.vercel.app/profile/${id}/update/`,
+        values,
+      );
+      setAlertSuccessPassword(true);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const handlerLogout = () => {
     dispatch(logoutAction());
   };
+
+  console.log(bio);
   return (
     <ScrollView>
       <TopNavbarUser />
@@ -190,7 +212,7 @@ const ProfilePage = () => {
                   <Image
                     source={{
                       uri:
-                        'http://192.168.171.14:8888/assets/upload/' +
+                        'https://res.cloudinary.com/fw12/image/upload/v1674621799/' +
                         bio.picture,
                     }}
                     style={{
@@ -198,17 +220,35 @@ const ProfilePage = () => {
                       height: 136,
                       borderRadius: 100,
                       marginBottom: 10,
+                      resizeMode: 'contain',
                     }}
                   />
-                  <Pressable>
-                    <Icon
-                      onPress={openGallery}
-                      mr="2"
-                      mb="2"
-                      size={5}
-                      as={<Feather name="edit" />}
-                    />
+                  <Pressable
+                    style={{justifyContent: 'center', alignItems: 'center'}}>
+                    <View>
+                      <Icon
+                        onPress={() => setUploadOption(true)}
+                        mr="2"
+                        mb="2"
+                        size={5}
+                        as={<Feather name="edit" />}
+                      />
+                    </View>
+                    {uploadOption ? (
+                      <View style={{flexDirection: 'column'}}>
+                        <View style={{flexDirection: 'row', marginBottom: 5}}>
+                          <Button onPress={openGallery} marginRight={5}>
+                            Open Gallery
+                          </Button>
+                          <Button onPress={openCamera}>Open Camera</Button>
+                        </View>
+                        <Button onPress={uploadImage}>Upload</Button>
+                      </View>
+                    ) : (
+                      false
+                    )}
                   </Pressable>
+
                   {preview?.uri && (
                     <Image
                       source={{uri: preview?.uri}}
@@ -222,7 +262,6 @@ const ProfilePage = () => {
                       }}
                     />
                   )}
-                  <Button onPress={uploadImage}>Upload</Button>
                 </View>
                 <View style={{alignItems: 'center'}}>
                   <Text

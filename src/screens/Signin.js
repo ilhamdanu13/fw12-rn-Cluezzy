@@ -33,7 +33,6 @@ YupPasword(Yup);
 import {useDispatch} from 'react-redux';
 
 import {loginAction} from '../redux/actions/auth';
-import {set} from 'immer/dist/internal';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -60,7 +59,6 @@ const styles = StyleSheet.create({
   },
 });
 
-// const phoneRegExpID = /^(^08)(\d{8,10})$/;
 const SignInSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Required'),
   password: Yup.string().required('Required'),
