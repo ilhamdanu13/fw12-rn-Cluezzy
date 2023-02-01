@@ -9,16 +9,26 @@ import barcode from '../../assets/images/barcode.png';
 import Footer from '../components/Footer';
 import {useNavigation} from '@react-navigation/native';
 import TopNavbarUser from './TopNavbarUser';
-// color:
-// primarybg: '#e9ecf4'
-// secondarybg:'#0b2361'
-// primarybtn: '#f1554c'
-// secondarycolor: '#ef91a1' ->logo
-// tertiercolor: '#feb05f'
-// colortextblack: '#101e2b',
-// color text-grey: '#A0A3BD'
+import {useSelector} from 'react-redux';
+
 const TicketResult = () => {
+  const movieName = useSelector(state => state.transaction.movieName);
+  const totalPrice = useSelector(state => state.transaction.totalPrice);
+  const bookingDate = useSelector(state => state.transaction.bookingDate);
+  const bookingTime = useSelector(state => state.transaction.bookingTime);
+  const seatNum = useSelector(state => state.transaction.seatNum);
+  const genre = useSelector(state => state.transaction.genre);
+
   const navigation = useNavigation();
+
+  let duration = bookingTime;
+  let hour = String(duration).split(':').slice(0, 1).join(':');
+  let minute = String(duration).split(':')[1];
+
+  let NewDate = new Date(bookingDate).toDateString();
+  let month = NewDate.split(' ')[1];
+  let dates = NewDate.split(' ')[2];
+
   return (
     <ScrollView>
       <TopNavbarUser />
@@ -64,8 +74,9 @@ const TicketResult = () => {
                       color: '#14142B',
                       fontFamily: 'Mulish-Medium',
                       letterSpacing: 0.75,
+                      width: 100,
                     }}>
-                    Spider-Man: ..
+                    {movieName}
                   </Text>
                 </View>
                 <View>
@@ -84,15 +95,16 @@ const TicketResult = () => {
                       color: '#14142B',
                       fontFamily: 'Mulish-Medium',
                       letterSpacing: 0.75,
+                      width: 100,
                     }}>
-                    Action
+                    {genre}
                   </Text>
                 </View>
               </View>
             </View>
             <View>
               <View style={{flexDirection: 'row', marginBottom: 50}}>
-                <View style={{marginRight: 140}}>
+                <View style={{marginRight: 130}}>
                   <Text
                     style={{
                       color: '#AAAAAA',
@@ -109,7 +121,7 @@ const TicketResult = () => {
                       fontFamily: 'Mulish-Medium',
                       letterSpacing: 0.75,
                     }}>
-                    07 Jul
+                    {dates} {month}
                   </Text>
                 </View>
                 <View>
@@ -129,7 +141,7 @@ const TicketResult = () => {
                       fontFamily: 'Mulish-Medium',
                       letterSpacing: 0.75,
                     }}>
-                    2:00pm
+                    {hour}:{minute}
                   </Text>
                 </View>
               </View>
@@ -153,7 +165,7 @@ const TicketResult = () => {
                       fontFamily: 'Mulish-Medium',
                       letterSpacing: 0.75,
                     }}>
-                    3 pcs
+                    {Math.round(seatNum.length / 4)}
                   </Text>
                 </View>
                 <View>
@@ -172,8 +184,9 @@ const TicketResult = () => {
                       color: '#14142B',
                       fontFamily: 'Mulish-Medium',
                       letterSpacing: 0.75,
+                      width: 100,
                     }}>
-                    C4, C5, C6
+                    {seatNum}
                   </Text>
                 </View>
               </View>
@@ -207,7 +220,7 @@ const TicketResult = () => {
                   letterSpacing: 0.75,
                   fontWeight: '600',
                 }}>
-                $30.00
+                IDR.{totalPrice}
               </Text>
             </View>
           </View>

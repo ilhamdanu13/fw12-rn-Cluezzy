@@ -4,8 +4,15 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable prettier/prettier */
 import React from 'react';
-import {View, Text, ScrollView, Image, TextInput} from 'react-native';
-import {Button, NativeBaseProvider} from 'native-base';
+import {View, Text, ScrollView} from 'react-native';
+import {
+  Button,
+  Image,
+  Stack,
+  Input,
+  WarningOutlineIcon,
+  Modal,
+} from 'native-base';
 import Footer from '../components/Footer';
 import Icon from 'react-native-vector-icons/dist/Feather';
 import google from '../../assets/images/google.png';
@@ -13,46 +20,68 @@ import {useNavigation} from '@react-navigation/native';
 import TopNavbarUser from './TopNavbarUser';
 import {useSelector, useDispatch} from 'react-redux';
 import jwt_decode from 'jwt-decode';
+import {Formik} from 'formik';
+import * as Yup from 'yup';
+import YupPasword from 'yup-password';
+YupPasword(Yup);
 import http from '../helpers/http';
-// color:
-// primarybg: '#e9ecf4'z
-// secondarybg:'#0b2361'
-// primarybtn: '#f1554c'
-// secondarycolor: '#ef91a1' ->logo
-// tertiercolor: '#feb05f'
-// colortextblack: '#101e2b',
-// color text-grey: '#A0A3BD'
+import {trxAction} from '../redux/actions/transaction';
+
+const phoneRegExpID = /^(^08)(\d{8,10})$/;
+const formSchema = Yup.object().shape({
+  fullName: Yup.string().required('Required'),
+  email: Yup.string().email('Invalid email').required('Required'),
+  phoneNumber: Yup.string()
+    .matches(phoneRegExpID, 'Invalid phone number')
+    .required('Required'),
+});
 
 const PaymentPage = () => {
   const token = useSelector(state => state?.auth?.token);
   const decode = jwt_decode(token);
   const {id} = decode;
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const [bio, setBio] = React.useState({});
   const [payment, setPayment] = React.useState([]);
+  const totalPrice = useSelector(state => state.transaction.totalPrice);
+  const dataTransaction = useSelector(state => state.transaction);
+  const [fullName, setFullName] = React.useState('');
+  const [showModal, setShowModal] = React.useState(false);
+  const [form, setForm] = React.useState({
+    fullName: '',
+    email: '',
+    phoneNumber: '',
+    paymentMethodId: '',
+  });
 
   React.useEffect(() => {
-    getBio().then(data => {
-      setBio(data?.results);
-    });
+    console.log(form);
+  }, [form]);
+
+  React.useEffect(() => {
     getPayment().then(data => {
       setPayment(data?.results);
     });
   }, []);
 
-  const getBio = async () => {
+  const getPayment = async () => {
     const {data} = await http(token).get(
-      'http://192.168.136.14:8888/users/' + id,
+      'https://fw12-backend-shr6.vercel.app/paymentMethod',
     );
     return data;
   };
 
-  const getPayment = async () => {
-    const {data} = await http(token).get(
-      'http://192.168.136.14:8888/paymentMethod',
-    );
-    return data;
+  const pay = () => {
+    dispatch(trxAction({...dataTransaction, ...form, token}));
+    setShowModal(true);
   };
+  const redirect = () => {
+    setTimeout(() => {
+      navigation.navigate('OrderHistory');
+    }, 3000);
+  };
+
   return (
     <ScrollView>
       <TopNavbarUser />
@@ -82,7 +111,7 @@ const PaymentPage = () => {
                 fontFamily: 'Mulish-Medium',
                 fontWeight: '600',
               }}>
-              $30.00
+              IDR.{totalPrice}
             </Text>
           </View>
         </View>
@@ -105,130 +134,69 @@ const PaymentPage = () => {
               paddingVertical: 32,
               borderRadius: 16,
             }}>
-            <NativeBaseProvider>
+            <View
+              style={{
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                marginBottom: 36,
+                paddingLeft: 40,
+              }}>
+              {payment?.map((item, i) => (
+                <Button
+                  onPress={() => setForm({...form, paymentMethodId: item.id})}
+                  key={i}
+                  size="sm"
+                  variant="outline"
+                  style={{marginRight: 16, marginBottom: 10}}>
+                  <View
+                    style={{
+                      width: 40,
+                      height: 30,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                    <Image
+                      source={{uri: item.picture}}
+                      alt={item.name}
+                      size={6}
+                      width={20}
+                      resizeMode="contain"
+                    />
+                  </View>
+                </Button>
+              ))}
+            </View>
+            <View style={{paddingHorizontal: 24, paddingBottom: 24}}>
               <View
                 style={{
                   flexDirection: 'row',
-                  flexWrap: 'wrap',
-                  marginBottom: 36,
-                  paddingLeft: 40,
+                  alignItems: 'center',
                 }}>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  style={{marginRight: 16, marginBottom: 10}}>
-                  <View
-                    style={{
-                      width: 40,
-                      height: 30,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                    <Image source={google} style={{width: 50, height: 20}} />
-                  </View>
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  style={{marginRight: 16, marginBottom: 10}}>
-                  <View
-                    style={{
-                      width: 40,
-                      height: 30,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                    <Image source={google} style={{width: 50, height: 20}} />
-                  </View>
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  style={{marginRight: 16, marginBottom: 10}}>
-                  <View
-                    style={{
-                      width: 40,
-                      height: 30,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                    <Image source={google} style={{width: 50, height: 20}} />
-                  </View>
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  style={{marginRight: 16, marginBottom: 10}}>
-                  <View
-                    style={{
-                      width: 40,
-                      height: 30,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                    <Image source={google} style={{width: 50, height: 20}} />
-                  </View>
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  style={{marginRight: 16, marginBottom: 10}}>
-                  <View
-                    style={{
-                      width: 40,
-                      height: 30,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                    <Image source={google} style={{width: 50, height: 20}} />
-                  </View>
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  style={{marginRight: 16, marginBottom: 10}}>
-                  <View
-                    style={{
-                      width: 40,
-                      height: 30,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                    <Image source={google} style={{width: 50, height: 20}} />
-                  </View>
-                </Button>
-              </View>
-              <View style={{paddingHorizontal: 24, paddingBottom: 24}}>
                 <View
                   style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                  }}>
-                  <View
-                    style={{
-                      borderBottomWidth: 1,
-                      borderBottomColor: '#dedede',
-                      width: '40%',
-                    }}></View>
-                  <Text style={{color: '#A0A3BD', paddingHorizontal: 20}}>
-                    or
-                  </Text>
-                  <View
-                    style={{
-                      borderBottomWidth: 1,
-                      borderBottomColor: '#dedede',
-                      width: '40%',
-                    }}></View>
-                </View>
-              </View>
-              <View style={{paddingHorizontal: 24, alignItems: 'center'}}>
-                <Text style={{color: '#6E7191'}}>
-                  Pay via cash. See how it work
+                    borderBottomWidth: 1,
+                    borderBottomColor: '#dedede',
+                    width: '40%',
+                  }}></View>
+                <Text style={{color: '#A0A3BD', paddingHorizontal: 20}}>
+                  or
                 </Text>
+                <View
+                  style={{
+                    borderBottomWidth: 1,
+                    borderBottomColor: '#dedede',
+                    width: '40%',
+                  }}></View>
               </View>
-            </NativeBaseProvider>
+            </View>
+            <View style={{paddingHorizontal: 24, alignItems: 'center'}}>
+              <Text style={{color: '#6E7191'}}>
+                Pay via cash. See how it work
+              </Text>
+            </View>
           </View>
         </View>
+
         <View style={{paddingHorizontal: 24, marginBottom: 16}}>
           <Text
             style={{
@@ -250,63 +218,92 @@ const PaymentPage = () => {
             }}>
             <View style={{marginBottom: 33}}>
               <View style={{marginBottom: 24}}>
-                <Text
-                  style={{
-                    color: '#696F79',
-                    fontFamily: 'Mulish-Medium',
-                    marginBottom: 8,
-                  }}>
-                  Full Name
-                </Text>
-                <TextInput
-                  placeholder={bio.firstName + ' ' + bio.lastName}
-                  style={{
-                    borderWidth: 1,
-                    borderColor: '#dedede',
-                    borderRadius: 12,
-                    paddingLeft: 24,
-                  }}
-                />
+                <View isInvalid>
+                  <Text
+                    style={{
+                      color: '#696F79',
+                      fontFamily: 'Mulish-Medium',
+                      marginBottom: 8,
+                    }}>
+                    Full Name
+                  </Text>
+                  <Input
+                    onChangeText={() => setForm({...form, fullName: fullName})}
+                    placeholder="write your full name"
+                    style={{
+                      borderColor: '#dedede',
+                      borderRadius: 12,
+                      paddingLeft: 24,
+                    }}
+                  />
+                </View>
               </View>
-              <View style={{marginBottom: 24}}>
-                <Text
-                  style={{
-                    color: '#696F79',
-                    fontFamily: 'Mulish-Medium',
-                    marginBottom: 8,
-                  }}>
-                  Email
-                </Text>
-                <TextInput
-                  placeholder={bio.email}
-                  style={{
-                    borderWidth: 1,
-                    borderColor: '#dedede',
-                    borderRadius: 12,
-                    paddingLeft: 24,
-                  }}
-                />
-              </View>
-              <View style={{marginBottom: 24}}>
-                <Text
-                  style={{
-                    color: '#696F79',
-                    fontFamily: 'Mulish-Medium',
-                    marginBottom: 8,
-                  }}>
-                  Phone Number
-                </Text>
-                <TextInput
-                  placeholder={bio.phoneNumber}
-                  style={{
-                    borderWidth: 1,
-                    borderColor: '#dedede',
-                    borderRadius: 12,
-                    paddingLeft: 24,
-                  }}
-                />
-              </View>
+              <Stack style={{marginBottom: 24}}>
+                <View isInvalid>
+                  <Text
+                    style={{
+                      color: '#696F79',
+                      fontFamily: 'Mulish-Medium',
+                      marginBottom: 8,
+                    }}>
+                    Email
+                  </Text>
+                  <Input
+                    // onChangeText={() => setForm({...form, email:email})}
+                    placeholder="write your email"
+                    style={{
+                      borderColor: '#dedede',
+                      borderRadius: 12,
+                      paddingLeft: 24,
+                    }}
+                  />
+                </View>
+              </Stack>
+              <Stack style={{marginBottom: 24}}>
+                <View isInvalid>
+                  <Text
+                    style={{
+                      color: '#696F79',
+                      fontFamily: 'Mulish-Medium',
+                      marginBottom: 8,
+                    }}>
+                    Phone Number
+                  </Text>
+                  <Input
+                    // onChangeText={() => setForm({...form, phoneNumber})}
+                    placeholder="write your phone number"
+                    keyboardType="numeric"
+                    style={{
+                      borderColor: '#dedede',
+                      borderRadius: 12,
+                      paddingLeft: 24,
+                    }}
+                  />
+                </View>
+              </Stack>
             </View>
+            <Modal
+              isOpen={showModal}
+              onClose={() => setShowModal(false)}
+              _backdrop={{
+                _dark: {
+                  bg: 'coolGray.800',
+                },
+                bg: 'warmGray.50',
+              }}>
+              <Modal.Content maxWidth="350" maxH="212">
+                <Modal.Header>Order status</Modal.Header>
+                <Modal.Body>
+                  Congratulations order ticket succeed! While we prepare your
+                  seat, please check other movies
+                </Modal.Body>
+                <Modal.Footer>
+                  <Button.Group space={2}>
+                    <Button onPress={redirect}>Yay!</Button>
+                  </Button.Group>
+                </Modal.Footer>
+              </Modal.Content>
+            </Modal>
             <View style={{paddingBottom: 25}}>
               <View
                 style={{
@@ -330,16 +327,14 @@ const PaymentPage = () => {
           </View>
         </View>
         <View style={{paddingHorizontal: 24}}>
-          <NativeBaseProvider>
-            <Button
-              onPress={() => navigation.navigate('PaymentPage')}
-              size="lg"
-              style={{backgroundColor: '#f1554c', marginBottom: 50}}>
-              <Text style={{color: 'white', fontSize: 16, fontWeight: '700'}}>
-                Pay your order
-              </Text>
-            </Button>
-          </NativeBaseProvider>
+          <Button
+            onPress={pay}
+            size="lg"
+            style={{backgroundColor: '#f1554c', marginBottom: 50}}>
+            <Text style={{color: 'white', fontSize: 16, fontWeight: '700'}}>
+              Pay your order
+            </Text>
+          </Button>
         </View>
       </View>
 

@@ -3,33 +3,58 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable prettier/prettier */
 import React from 'react';
-import {View, Text, ScrollView, Image} from 'react-native';
-import {Center, NativeBaseProvider, Button, HStack} from 'native-base';
-import Icon from 'react-native-vector-icons/dist/Feather';
-import cinema from '../../assets/images/cinema.png';
-import Footer from '../components/Footer';
 import {useNavigation} from '@react-navigation/native';
+import {View, Text, ScrollView} from 'react-native';
+import {Center, NativeBaseProvider, Button, HStack, Image} from 'native-base';
+import Icon from 'react-native-vector-icons/dist/Feather';
+
+import Footer from '../components/Footer';
+
 import TopNavbarUser from './TopNavbarUser';
 import SeatGrid from '../components/SeatGrid';
-// color:
-// primarybg: '#e9ecf4'
-// secondarybg:'#0b2361'
-// primarybtn: '#f1554c'
-// secondarycolor: '#ef91a1' ->logo
-// tertiercolor: '#feb05f'
-// colortextblack: '#101e2b',
-// color text-grey: '#A0A3BD'
+import {useSelector, useDispatch} from 'react-redux';
+import {chooseSeat} from '../redux/reducers/transaction';
+
 const OrderPage = () => {
-  const [selected, setSelected] = React.useState([]);
+  const [selectedSeat, setSelectedSeat] = React.useState([]);
+  const movieName = useSelector(state => state.transaction.movieName);
+  const bookingDate = useSelector(state => state.transaction.bookingDate);
+  const bookingTime = useSelector(state => state.transaction.bookingTime);
+  const price = useSelector(state => state.transaction.price);
+  const cinema = useSelector(state => state.transaction.cinema);
+  const cinemaPicture = useSelector(state => state.transaction.cinemaPicture);
+
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
+
+  let duration = bookingTime;
+  let hour = String(duration).split(':').slice(0, 1).join(':');
+  let minute = String(duration).split(':')[1];
+
+  let NewDate = new Date(bookingDate).toDateString();
+  let month = NewDate.split(' ')[1];
+  let dates = NewDate.split(' ')[2];
+  let year = NewDate.split(' ')[3];
+  let day = NewDate.split(' ')[4];
 
   const onChangeSeat = seatNum => {
-    if (selected.includes(seatNum)) {
-      setSelected(selected.filter(o => o !== seatNum));
+    if (selectedSeat.includes(seatNum)) {
+      setSelectedSeat(selectedSeat.filter(o => o !== seatNum));
     } else {
-      setSelected([...selected, seatNum]);
+      setSelectedSeat([...selectedSeat, seatNum]);
     }
   };
-  const navigation = useNavigation();
+
+  const checkout = () => {
+    dispatch(
+      chooseSeat({
+        seatNumber: selectedSeat.join(', '),
+        totalPrice: selectedSeat.length * price,
+      }),
+    );
+    navigation.navigate('PaymentPage');
+  };
+
   return (
     <ScrollView>
       <TopNavbarUser />
@@ -80,9 +105,9 @@ const OrderPage = () => {
                   borderLeftColor: '#00BA88',
                 }}></View>
               <HStack space={4}>
-                <SeatGrid selected={selected} onChange={onChangeSeat} />
+                <SeatGrid selected={selectedSeat} onChange={onChangeSeat} />
                 <SeatGrid
-                  selected={selected}
+                  selected={selectedSeat}
                   onChange={onChangeSeat}
                   startNum={8}
                 />
@@ -193,9 +218,15 @@ const OrderPage = () => {
             <NativeBaseProvider>
               <Center style={{marginBottom: 27}}>
                 <View style={{marginBottom: 7}}>
-                  <Image source={cinema} />
+                  <Image
+                    source={{uri: cinemaPicture}}
+                    alt={cinema}
+                    size={10}
+                    width={32}
+                    resizeMode="contain"
+                  />
                 </View>
-                <View style={{alignItems: 'center'}}>
+                <View style={{alignItems: 'center', justifyContent: 'center'}}>
                   <Text
                     style={{
                       fontSize: 24,
@@ -204,15 +235,17 @@ const OrderPage = () => {
                       fontWeight: '600',
                       marginBottom: 7,
                     }}>
-                    CineOne21 Cinema
+                    {cinema}
                   </Text>
                   <Text
                     style={{
                       color: '#101e2b',
                       fontFamily: 'Mulish-Medium',
                       fontWeight: '600',
+                      fontSize: 24,
+                      flexWrap: 'wrap',
                     }}>
-                    Spider-Man: Homecoming
+                    {movieName}
                   </Text>
                 </View>
               </Center>
@@ -226,9 +259,11 @@ const OrderPage = () => {
                       fontFamily: 'Mulish-Medium',
                       flexGrow: 1,
                     }}>
-                    Tuesday, 07 July 2020
+                    {month} {dates}, {year}
                   </Text>
-                  <Text style={{color: '#101e2b'}}>02:00pm</Text>
+                  <Text style={{color: '#101e2b'}}>
+                    {hour}:{minute}
+                  </Text>
                 </View>
                 <View style={{flexDirection: 'row', marginBottom: 11}}>
                   <Text
@@ -239,7 +274,7 @@ const OrderPage = () => {
                     }}>
                     One ticket price
                   </Text>
-                  <Text style={{color: '#101e2b'}}>$10</Text>
+                  <Text style={{color: '#101e2b'}}>{price}</Text>
                 </View>
                 <View style={{flexDirection: 'row'}}>
                   <Text
@@ -250,7 +285,12 @@ const OrderPage = () => {
                     }}>
                     Seat choosed
                   </Text>
-                  <Text style={{color: '#101e2b'}}>C4, C5, C6</Text>
+                  <Text
+                    style={{
+                      color: '#101e2b',
+                    }}>
+                    {selectedSeat.join(', ')}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -277,12 +317,12 @@ const OrderPage = () => {
               </Text>
               <Text
                 style={{
-                  fontSize: 24,
+                  fontSize: 16,
                   fontWeight: '700',
                   color: '#f1554c',
                   fontFamily: 'Mulish-Medium',
                 }}>
-                $30
+                IDR.{selectedSeat.length * price}
               </Text>
             </View>
           </View>
@@ -290,7 +330,7 @@ const OrderPage = () => {
         <NativeBaseProvider>
           <View style={{paddingHorizontal: 24}}>
             <Button
-              onPress={() => navigation.navigate('PaymentPage')}
+              onPress={checkout}
               size="lg"
               style={{backgroundColor: '#f1554c', marginBottom: 50}}>
               <Text style={{color: 'white', fontSize: 16, fontWeight: '700'}}>

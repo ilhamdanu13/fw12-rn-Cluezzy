@@ -30,7 +30,7 @@ import TopNavbarUser from './TopNavbarUser';
 import http from '../helpers/http';
 import {useSelector, useDispatch} from 'react-redux';
 import {useRoute} from '@react-navigation/native';
-import {chooseMovie} from '../redux/reducers/transaction';
+import {chooseMovie as chooseMovieAction} from '../redux/reducers/transaction';
 import moment from 'moment';
 import jwtDecode from 'jwt-decode';
 
@@ -110,7 +110,7 @@ const MovieDetails = () => {
 
   const book = () => {
     dispatch(
-      chooseMovie({
+      chooseMovieAction({
         userId: userId,
         movieId: route.params.id,
         cinemaId: selectedCinema,
@@ -400,6 +400,7 @@ const MovieDetails = () => {
                       alt="cinema"
                       size={6}
                       width={32}
+                      resizeMode="contain"
                       style={{marginBottom: 10}}
                     />
                     <Text style={{color: '#6E7191'}}>{schedule.cinema}</Text>

@@ -33,11 +33,11 @@ const transactionReducer = createSlice({
       state.price = payload.price;
       state.bookingDate = payload.bookingDate;
       state.bookingTime = payload.bookingTime;
-      state.chooseMovie = payload.movieName;
+      state.movieName = payload.movieName;
       state.genre = payload.genre;
     },
     chooseSeat: (state, {payload}) => {
-      state.seatNum = payload.seatNum;
+      state.seatNum = payload.seatNumber;
       state.totalPrice = payload.totalPrice;
     },
     choosePayment: (state, action) => {

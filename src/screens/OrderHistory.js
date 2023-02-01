@@ -4,23 +4,31 @@
 /* eslint-disable prettier/prettier */
 
 import React from 'react';
-import {View, Text, ScrollView, Image} from 'react-native';
-import {NativeBaseProvider, Button, Pressable} from 'native-base';
+import {View, Text, ScrollView} from 'react-native';
+import {NativeBaseProvider, Button, Pressable, Image} from 'native-base';
 import Footer from '../components/Footer';
 import cinema from '../../assets/images/cinema.png';
 import ebu from '../../assets/images/ebu.png';
 import TopNavbarUser from './TopNavbarUser';
 import {useNavigation} from '@react-navigation/native';
-// color:
-// primarybg: '#e9ecf4'
-// secondarybg:'#0b2361'
-// primarybtn: '#f1554c'
-// secondarycolor: '#ef91a1' ->logo
-// tertiercolor: '#feb05f'
-// colortextblack: '#101e2b',
-// color text-grey: '#A0A3BD'
+import {useSelector, useDispatch} from 'react-redux';
+
 const OrderHistory = () => {
+  const movieName = useSelector(state => state.transaction.movieName);
+  const bookingDate = useSelector(state => state.transaction.bookingDate);
+  const bookingTime = useSelector(state => state.transaction.bookingTime);
+  const cinemaPicture = useSelector(state => state.transaction.cinemaPicture);
+  const dispatch = useDispatch();
   const navigation = useNavigation();
+
+  let duration = bookingTime;
+  let hour = String(duration).split(':').slice(0, 1).join(':');
+  let minute = String(duration).split(':')[1];
+
+  let NewDate = new Date(bookingDate).toDateString();
+  let month = NewDate.split(' ')[1];
+  let dates = NewDate.split(' ')[2];
+  let year = NewDate.split(' ')[3];
   return (
     <ScrollView>
       <TopNavbarUser />
@@ -72,7 +80,13 @@ const OrderHistory = () => {
               marginBottom: 24,
             }}>
             <View style={{marginBottom: 17, paddingHorizontal: 25}}>
-              <Image source={cinema} />
+              <Image
+                source={{uri: cinemaPicture}}
+                alt="cinema"
+                size={10}
+                width={32}
+                resizeMode="contain"
+              />
             </View>
             <View style={{marginBottom: 32, paddingHorizontal: 25}}>
               <Text
@@ -83,7 +97,7 @@ const OrderHistory = () => {
                   letterSpacing: 0.25,
                   marginBottom: 5,
                 }}>
-                Tuesday, 07 July 2020 - 04:30pm
+                {month} {dates}, {year} - {hour}:{minute}
               </Text>
               <Text
                 style={{
@@ -93,7 +107,7 @@ const OrderHistory = () => {
                   letterSpacing: 0.75,
                   fontWeight: '600',
                 }}>
-                Spider-Man: Homecoming
+                {movieName}
               </Text>
             </View>
             <View
@@ -111,58 +125,6 @@ const OrderHistory = () => {
                   <Text
                     style={{color: 'white', fontSize: 16, fontWeight: '700'}}>
                     Ticket in active
-                  </Text>
-                </Button>
-              </NativeBaseProvider>
-            </View>
-          </View>
-        </View>
-        <View style={{paddingHorizontal: 24}}>
-          <View
-            style={{
-              paddingTop: 25,
-              paddingBottom: 40,
-              backgroundColor: 'white',
-              borderRadius: 16,
-              marginBottom: 72,
-            }}>
-            <View style={{marginBottom: 17, paddingHorizontal: 25}}>
-              <Image source={ebu} />
-            </View>
-            <View style={{marginBottom: 32, paddingHorizontal: 25}}>
-              <Text
-                style={{
-                  color: '#AAAAAA',
-                  fontSize: 13,
-                  fontFamily: 'Mulish-Medium',
-                  letterSpacing: 0.25,
-                  marginBottom: 5,
-                }}>
-                Tuesday, 07 July 2020 - 04:30pm
-              </Text>
-              <Text
-                style={{
-                  color: '#101e2b',
-                  fontFamily: 'Mulish-Medium',
-                  fontSize: 18,
-                  letterSpacing: 0.75,
-                  fontWeight: '600',
-                }}>
-                Spider-Man: Homecoming
-              </Text>
-            </View>
-            <View
-              style={{
-                borderBottomWidth: 1,
-                borderBottomColor: '#dedede',
-                marginBottom: 24,
-              }}></View>
-            <View style={{paddingHorizontal: 24}}>
-              <NativeBaseProvider>
-                <Button size="lg" style={{backgroundColor: '#0b2361'}}>
-                  <Text
-                    style={{color: 'white', fontSize: 16, fontWeight: '700'}}>
-                    Ticket used
                   </Text>
                 </Button>
               </NativeBaseProvider>
