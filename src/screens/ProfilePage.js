@@ -76,6 +76,7 @@ const ProfilePage = () => {
   const [show, setShow] = React.useState(false);
   const [showConfirm, setShowConfirm] = React.useState(false);
   const [uploadOption, setUploadOption] = React.useState(false);
+  const [alertSize, setAlertSize] = React.useState(false);
   const cancelRef = React.useRef(null);
   const navigation = useNavigation();
   const route = useRoute();
@@ -110,36 +111,41 @@ const ProfilePage = () => {
   };
 
   const uploadImage = async () => {
-    try {
-      if (preview?.fileName) {
-        const obj = {
-          name: preview.fileName,
-          type: preview.type,
-          uri: preview.uri,
-        };
-        const form = new FormData();
-        form.append('picture', obj);
-        const {data} = await http(token).patch(
-          `https://fw12-backend-shr6.vercel.app/profile/${id}/update/`,
-          form,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
+    if (preview?.fileSize > 1024 * 1024 * 2) {
+      setAlertSize(true);
+    } else {
+      try {
+        if (preview?.fileName) {
+          const obj = {
+            name: preview.fileName,
+            type: preview.type,
+            uri: preview.uri,
+          };
+
+          const form = new FormData();
+          form.append('picture', obj);
+          const {data} = await http(token).patch(
+            `https://fw12-backend-shr6.vercel.app/profile/${id}/update/`,
+            form,
+            {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
             },
-          },
-        );
-        setAlertSuccessUpload(true);
-        setTimeout(() => {
-          navigation.reset({
-            index: 0,
-            routes: [{name: 'ProfilePage'}],
-          });
-        }, 3000);
-      } else {
-        alert('Please choose image first');
+          );
+          setAlertSuccessUpload(true);
+          setTimeout(() => {
+            navigation.reset({
+              index: 0,
+              routes: [{name: 'ProfilePage'}],
+            });
+          }, 3000);
+        } else {
+          alert('Please choose image first');
+        }
+      } catch (err) {
+        console.log(err);
       }
-    } catch (err) {
-      console.log(err);
     }
   };
 
@@ -192,7 +198,6 @@ const ProfilePage = () => {
     dispatch(logoutAction());
   };
 
-  console.log(bio);
   return (
     <ScrollView>
       <TopNavbarUser />
@@ -282,6 +287,25 @@ const ProfilePage = () => {
                           </Button>
                           <Button onPress={openCamera}>Open Camera</Button>
                         </View>
+                        {alertSize ? (
+                          <Stack
+                            borderWidth={1}
+                            bg={'red.200'}
+                            borderColor={'red.500'}
+                            paddingVertical={5}
+                            marginBottom={2}
+                            borderRadius={2}>
+                            <Text
+                              style={{
+                                color: 'red',
+                                textAlign: 'center',
+                              }}>
+                              Cannot more than 2MB
+                            </Text>
+                          </Stack>
+                        ) : (
+                          false
+                        )}
                         <Button onPress={uploadImage}>Upload</Button>
                       </View>
                     ) : (
@@ -322,7 +346,7 @@ const ProfilePage = () => {
                       fontFamily: 'Mulish-Medium',
                       letterSpacing: 0.75,
                     }}>
-                    Moviegoers
+                    Moviegoer
                   </Text>
                 </View>
               </Center>
