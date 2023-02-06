@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "278032471685",
+    "project_id": "cluezzy-3428a",
+    "storage_bucket": "cluezzy-3428a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:278032471685:android:a6fcd6ee27f5ed7618bbec",
+        "android_client_info": {
+          "package_name": "com.fazztrack.cluezzy"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "278032471685-6n8ivv24o5s6qmne4m8kddiqi7jcbi8s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDL1jglxNVT11BNbrkeAY6rhQlgxokH9HE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "278032471685-6n8ivv24o5s6qmne4m8kddiqi7jcbi8s.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

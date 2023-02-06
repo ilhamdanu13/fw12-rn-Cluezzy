@@ -79,6 +79,9 @@ const SignUpSchema = Yup.object().shape({
 });
 const SignUp = () => {
   const [show, setShow] = React.useState(false);
+  const [alertError, setAlertError] = React.useState(false);
+  const [errMessage, setErrMessage] = React.useState('');
+  const [alertSuccess, setAlertSuccess] = React.useState(false);
   const navigation = useNavigation();
   const dispatch = useDispatch();
 
@@ -89,7 +92,11 @@ const SignUp = () => {
     const email = value.email;
     const password = value.password;
     const cb = () => {
-      navigation.navigate('SignIn');
+      setAlertError(false);
+      setAlertSuccess(true);
+      setTimeout(() => {
+        navigation.navigate('SignIn');
+      }, 3000);
     };
 
     try {
@@ -104,7 +111,16 @@ const SignUp = () => {
           cb,
         }),
       );
-      console.log(results.payload);
+      if (results.payload.startsWith('Email')) {
+        setAlertError(true);
+        setErrMessage(results.payload);
+        return;
+      }
+      if (results.payload.startsWith('Phone')) {
+        setAlertError(true);
+        setErrMessage(results.payload);
+        return;
+      }
     } catch (error) {
       console.log(error);
     }
@@ -147,8 +163,8 @@ const SignUp = () => {
             onSubmit={register}
             validationSchema={SignUpSchema}>
             {({handleChange, handleBlur, handleSubmit, errors, values}) => (
-              <View style={{marginBottom: 55}}>
-                <Stack style={{marginBottom: 25}}>
+              <View style={{marginBottom: 25}}>
+                <Stack style={{marginBottom: 10}}>
                   <FormControl isInvalid>
                     <FormControl.Label>First Name</FormControl.Label>
                     <Input
@@ -166,7 +182,7 @@ const SignUp = () => {
                     )}
                   </FormControl>
                 </Stack>
-                <Stack style={{marginBottom: 25}}>
+                <Stack style={{marginBottom: 10}}>
                   <FormControl isInvalid>
                     <FormControl.Label>Last Name</FormControl.Label>
                     <Input
@@ -185,7 +201,7 @@ const SignUp = () => {
                   </FormControl>
                 </Stack>
 
-                <Stack style={{marginBottom: 25}}>
+                <Stack style={{marginBottom: 10}}>
                   <FormControl isInvalid>
                     <FormControl.Label>Phone Number</FormControl.Label>
                     <Input
@@ -204,7 +220,7 @@ const SignUp = () => {
                   </FormControl>
                 </Stack>
 
-                <Stack style={{marginBottom: 25}}>
+                <Stack style={{marginBottom: 10}}>
                   <FormControl isInvalid>
                     <FormControl.Label>Email</FormControl.Label>
                     <Input
@@ -251,7 +267,43 @@ const SignUp = () => {
                     )}
                   </FormControl>
                 </Stack>
-
+                {alertSuccess ? (
+                  <Stack
+                    borderWidth={1}
+                    bg={'green.200'}
+                    borderColor={'green.500'}
+                    paddingVertical={5}
+                    marginBottom={2}
+                    borderRadius={2}>
+                    <Text
+                      style={{
+                        textAlign: 'center',
+                      }}>
+                      Register Succesfully
+                    </Text>
+                  </Stack>
+                ) : (
+                  false
+                )}
+                {alertError ? (
+                  <Stack
+                    borderWidth={1}
+                    bg={'red.200'}
+                    borderColor={'red.500'}
+                    paddingVertical={5}
+                    marginBottom={2}
+                    borderRadius={2}>
+                    <Text
+                      style={{
+                        color: 'red',
+                        textAlign: 'center',
+                      }}>
+                      {errMessage}
+                    </Text>
+                  </Stack>
+                ) : (
+                  false
+                )}
                 <Button
                   onPress={handleSubmit}
                   size="lg"

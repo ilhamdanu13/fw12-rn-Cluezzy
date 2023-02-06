@@ -11,14 +11,6 @@ import {useDispatch} from 'react-redux';
 import {logoutAction} from '../redux/reducers/auth';
 import {useRoute} from '@react-navigation/native';
 import {useSelector} from 'react-redux';
-// color:
-// primarybg: '#e9ecf4'
-// secondarybg:'#0b2361'
-// primarybtn: '#f1554c'
-// secondarycolor: '#ef91a1' ->logo
-// tertiercolor: '#feb05f'
-// colortextblack: '#101e2b',
-// color text-grey: '#A0A3BD'
 
 const styles = StyleSheet.create({
   logotext: {

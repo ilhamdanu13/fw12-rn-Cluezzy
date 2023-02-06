@@ -1,5 +1,5 @@
 {
-  "name": "fw12-rn-Cluezzy",
+  "name": "cluezzy",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -26,6 +26,7 @@
     "react-native-date-picker": "^4.2.6",
     "react-native-datepicker": "^1.7.2",
     "react-native-image-picker": "^5.0.0",
+    "react-native-push-notification": "^8.1.1",
     "react-native-safe-area-context": "^3.4.1",
     "react-native-screens": "^3.18.2",
     "react-native-svg": "^12.1.1",

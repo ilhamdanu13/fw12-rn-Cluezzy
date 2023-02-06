@@ -6,14 +6,6 @@ import {View, Text, StyleSheet} from 'react-native';
 import {NativeBaseProvider, Pressable} from 'native-base';
 import Icon from 'react-native-vector-icons/dist/Feather';
 import {useNavigation} from '@react-navigation/native';
-// color:
-// primarybg: '#e9ecf4'
-// secondarybg:'#0b2361'
-// primarybtn: '#f1554c'
-// secondarycolor: '#ef91a1' ->logo
-// tertiercolor: '#feb05f'
-// colortextblack: '#101e2b',
-// color text-grey: '#A0A3BD'
 
 const styles = StyleSheet.create({
   logotext: {

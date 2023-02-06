@@ -12,23 +12,32 @@ import ebu from '../../assets/images/ebu.png';
 import TopNavbarUser from './TopNavbarUser';
 import {useNavigation} from '@react-navigation/native';
 import {useSelector, useDispatch} from 'react-redux';
+import jwtDecode from 'jwt-decode';
+import http from '../helpers/http';
+import moment from 'moment';
 
 const OrderHistory = () => {
-  const movieName = useSelector(state => state.transaction.movieName);
-  const bookingDate = useSelector(state => state.transaction.bookingDate);
-  const bookingTime = useSelector(state => state.transaction.bookingTime);
-  const cinemaPicture = useSelector(state => state.transaction.cinemaPicture);
+  const token = useSelector(state => state?.auth?.token);
+  const decode = jwtDecode(token);
+  const {id} = decode;
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const [history, setHistory] = React.useState([]);
 
-  let duration = bookingTime;
-  let hour = String(duration).split(':').slice(0, 1).join(':');
-  let minute = String(duration).split(':')[1];
+  React.useEffect(() => {
+    getHistory().then(data => {
+      setHistory(data?.results);
+    });
+  }, []);
 
-  let NewDate = new Date(bookingDate).toDateString();
-  let month = NewDate.split(' ')[1];
-  let dates = NewDate.split(' ')[2];
-  let year = NewDate.split(' ')[3];
+  const getHistory = async () => {
+    const {data} = await http(token).get(
+      'https://fw12-backend-shr6.vercel.app/transactions/history/' + id,
+    );
+    return data;
+  };
+
+  console.log(history);
   return (
     <ScrollView>
       <TopNavbarUser />
@@ -70,67 +79,74 @@ const OrderHistory = () => {
               }}></View>
           </View>
         </View>
-        <View style={{paddingHorizontal: 24}}>
-          <View
-            style={{
-              paddingTop: 25,
-              paddingBottom: 40,
-              backgroundColor: 'white',
-              borderRadius: 16,
-              marginBottom: 24,
-            }}>
-            <View style={{marginBottom: 17, paddingHorizontal: 25}}>
-              <Image
-                source={{uri: cinemaPicture}}
-                alt="cinema"
-                size={10}
-                width={32}
-                resizeMode="contain"
-              />
-            </View>
-            <View style={{marginBottom: 32, paddingHorizontal: 25}}>
-              <Text
-                style={{
-                  color: '#AAAAAA',
-                  fontSize: 13,
-                  fontFamily: 'Mulish-Medium',
-                  letterSpacing: 0.25,
-                  marginBottom: 5,
-                }}>
-                {month} {dates}, {year} - {hour}:{minute}
-              </Text>
-              <Text
-                style={{
-                  color: '#101e2b',
-                  fontFamily: 'Mulish-Medium',
-                  fontSize: 18,
-                  letterSpacing: 0.75,
-                  fontWeight: '600',
-                }}>
-                {movieName}
-              </Text>
-            </View>
+        {history?.map((ticket, i) => (
+          <View key={i} style={{paddingHorizontal: 24}}>
             <View
               style={{
-                borderBottomWidth: 1,
-                borderBottomColor: '#dedede',
+                paddingTop: 25,
+                paddingBottom: 40,
+                backgroundColor: 'white',
+                borderRadius: 16,
                 marginBottom: 24,
-              }}></View>
-            <View style={{paddingHorizontal: 24}}>
-              <NativeBaseProvider>
-                <Button
-                  onPress={() => navigation.navigate('TicketResult')}
-                  size="lg"
-                  style={{backgroundColor: '#feb05f'}}>
-                  <Text
-                    style={{color: 'white', fontSize: 16, fontWeight: '700'}}>
-                    Ticket in active
-                  </Text>
-                </Button>
-              </NativeBaseProvider>
+              }}>
+              <View style={{marginBottom: 17, paddingHorizontal: 25}}>
+                <Image
+                  source={{uri: ticket.cinemapicture}}
+                  alt="cinema"
+                  size={10}
+                  width={32}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={{marginBottom: 32, paddingHorizontal: 25}}>
+                <Text
+                  style={{
+                    color: '#AAAAAA',
+                    fontSize: 13,
+                    fontFamily: 'Mulish-Medium',
+                    letterSpacing: 0.25,
+                    marginBottom: 5,
+                  }}>
+                  {moment(ticket.bookingDate).format('LL')} -{' '}
+                  {String(ticket.bookingTime).split(':').slice(0, 2).join(':')}
+                </Text>
+                <Text
+                  style={{
+                    color: '#101e2b',
+                    fontFamily: 'Mulish-Medium',
+                    fontSize: 18,
+                    letterSpacing: 0.75,
+                    fontWeight: '600',
+                  }}>
+                  {ticket.title}
+                </Text>
+              </View>
+              <View
+                style={{
+                  borderBottomWidth: 1,
+                  borderBottomColor: '#dedede',
+                  marginBottom: 24,
+                }}></View>
+              <View style={{paddingHorizontal: 24}}>
+                <NativeBaseProvider>
+                  <Button
+                    onPress={() =>
+                      navigation.navigate('TicketResult', {
+                        ticketDetail: ticket.id,
+                      })
+                    }
+                    size="lg"
+                    style={{backgroundColor: '#feb05f'}}>
+                    <Text
+                      style={{color: 'white', fontSize: 16, fontWeight: '700'}}>
+                      Ticket in active
+                    </Text>
+                  </Button>
+                </NativeBaseProvider>
+              </View>
             </View>
           </View>
-        </View>
+        ))}
       </View>
       <Footer />
     </ScrollView>

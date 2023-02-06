@@ -21,7 +21,6 @@ import TopNavbarUser from './TopNavbarUser';
 import {useSelector, useDispatch} from 'react-redux';
 const styles = StyleSheet.create({
   wrapper: {
-    paddingTop: 54,
     backgroundColor: '#e9ecf4',
     fontFamily: 'Mulish-Medium',
   },

@@ -4,30 +4,30 @@
 /* eslint-disable prettier/prettier */
 import React from 'react';
 import {View, Text, ScrollView, Image} from 'react-native';
-import {NativeBaseProvider, Button} from 'native-base';
 import barcode from '../../assets/images/barcode.png';
 import Footer from '../components/Footer';
-import {useNavigation} from '@react-navigation/native';
 import TopNavbarUser from './TopNavbarUser';
 import {useSelector} from 'react-redux';
+import http from '../helpers/http';
+import {useRoute} from '@react-navigation/native';
+import moment from 'moment';
 
 const TicketResult = () => {
-  const movieName = useSelector(state => state.transaction.movieName);
-  const totalPrice = useSelector(state => state.transaction.totalPrice);
-  const bookingDate = useSelector(state => state.transaction.bookingDate);
-  const bookingTime = useSelector(state => state.transaction.bookingTime);
-  const seatNum = useSelector(state => state.transaction.seatNum);
-  const genre = useSelector(state => state.transaction.genre);
+  const token = useSelector(state => state?.auth?.token);
+  const [ticket, setTicket] = React.useState({});
+  const route = useRoute();
 
-  const navigation = useNavigation();
+  React.useEffect(() => {
+    getTicket();
+  }, []);
 
-  let duration = bookingTime;
-  let hour = String(duration).split(':').slice(0, 1).join(':');
-  let minute = String(duration).split(':')[1];
-
-  let NewDate = new Date(bookingDate).toDateString();
-  let month = NewDate.split(' ')[1];
-  let dates = NewDate.split(' ')[2];
+  const getTicket = async () => {
+    const {data} = await http(token).get(
+      'https://fw12-backend-shr6.vercel.app/transactions/ticket/' +
+        route.params.ticketDetail,
+    );
+    setTicket(data.results);
+  };
 
   return (
     <ScrollView>
@@ -76,7 +76,7 @@ const TicketResult = () => {
                       letterSpacing: 0.75,
                       width: 100,
                     }}>
-                    {movieName}
+                    {ticket.title}
                   </Text>
                 </View>
                 <View>
@@ -97,7 +97,7 @@ const TicketResult = () => {
                       letterSpacing: 0.75,
                       width: 100,
                     }}>
-                    {genre}
+                    {ticket.genre}
                   </Text>
                 </View>
               </View>
@@ -121,7 +121,9 @@ const TicketResult = () => {
                       fontFamily: 'Mulish-Medium',
                       letterSpacing: 0.75,
                     }}>
-                    {dates} {month}
+                    {moment(ticket.bookingDate)
+                      .add(-2, 'day')
+                      .format('0d, MMM')}
                   </Text>
                 </View>
                 <View>
@@ -141,7 +143,10 @@ const TicketResult = () => {
                       fontFamily: 'Mulish-Medium',
                       letterSpacing: 0.75,
                     }}>
-                    {hour}:{minute}
+                    {String(ticket.bookingTime)
+                      .split(':')
+                      .slice(0, 2)
+                      .join(':')}
                   </Text>
                 </View>
               </View>
@@ -165,7 +170,7 @@ const TicketResult = () => {
                       fontFamily: 'Mulish-Medium',
                       letterSpacing: 0.75,
                     }}>
-                    {Math.round(seatNum.length / 4)}
+                    {Math.round(ticket?.seatNum?.length / 3)}
                   </Text>
                 </View>
                 <View>
@@ -186,7 +191,7 @@ const TicketResult = () => {
                       letterSpacing: 0.75,
                       width: 100,
                     }}>
-                    {seatNum}
+                    {ticket.seatNum}
                   </Text>
                 </View>
               </View>
@@ -220,7 +225,7 @@ const TicketResult = () => {
                   letterSpacing: 0.75,
                   fontWeight: '600',
                 }}>
-                IDR.{totalPrice}
+                IDR.{ticket.totalPrice}
               </Text>
             </View>
           </View>

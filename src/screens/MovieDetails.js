@@ -16,14 +16,12 @@ import {
   Box,
   Pressable,
   Text,
+  Stack,
 } from 'native-base';
 import React from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {ScrollView, View} from 'react-native';
 import Icon from 'react-native-vector-icons/dist/Feather';
-import card1 from '../../assets/images/card-1.png';
-import ebu from '../../assets/images/ebu.png';
-import cinema from '../../assets/images/cinema.png';
 import Footer from '../components/Footer';
 import DatePicker from 'react-native-date-picker';
 import TopNavbarUser from './TopNavbarUser';
@@ -31,7 +29,7 @@ import http from '../helpers/http';
 import {useSelector, useDispatch} from 'react-redux';
 import {useRoute} from '@react-navigation/native';
 import {chooseMovie as chooseMovieAction} from '../redux/reducers/transaction';
-import moment from 'moment';
+import moment, {relativeTimeRounding} from 'moment';
 import jwtDecode from 'jwt-decode';
 
 const MovieDetails = () => {
@@ -43,15 +41,17 @@ const MovieDetails = () => {
   const [dateView, setDateView] = React.useState(false);
   const [date, setDate] = React.useState(new Date());
   const [movieDetail, setMovieDetail] = React.useState({});
-  const [cityList, setCityList] = React.useState([]);
+  const [cinema, setCinema] = React.useState([]);
   const [city, setCity] = React.useState({});
   const [schedule, setSchedule] = React.useState({});
   const [selectedTime, setSelectedTime] = React.useState('');
-  const [selectedCinema, setSelectedCinema] = React.useState(null);
+  const [selectedCinemaName, setSelectedCinemaName] = React.useState(null);
+  const [selectedCinemaId, setSelectedCinemaId] = React.useState(null);
   const [selectedCinemaPicture, setSelectedCinemaPicture] = React.useState('');
   const [selectedMovie, setSelectedMovie] = React.useState('');
   const [selectedGenre, setSelectedGenre] = React.useState('');
   const [selectedPrice, setSelectedPrice] = React.useState('');
+  const [alertBook, setAlertBook] = React.useState(false);
 
   const route = useRoute();
   const dispatch = useDispatch();
@@ -72,54 +72,71 @@ const MovieDetails = () => {
     getCinemas();
     getSchedule();
   }, []);
+
+  //get movie
   const getMovieDetail = async () => {
     const {data} = await http(token).get(
       'https://fw12-backend-shr6.vercel.app/movies/' + route.params.id,
     );
     setMovieDetail(data.results);
-    // console.log(data);
   };
 
+  //get cinema
   const getCinemas = async () => {
     const {data} = await http(token).get(
       'https://fw12-backend-shr6.vercel.app/cinemas',
     );
-    setCityList(data.results);
+    setCinema(data.results);
 
     if (data.results.length) {
       setCity(data.results[0].name);
     }
   };
 
+  // get movie schedules
   const getSchedule = async () => {
     const {data} = await http(token).get(
       'https://fw12-backend-shr6.vercel.app/movieSchedules/' + route.params.id,
     );
     setSchedule(data.results);
-    console.log(data);
   };
 
-  const selectTime = (time, cinema, price, title, cinemaPicture, genre) => {
+  const selectTime = (
+    time,
+    cinemaName,
+    price,
+    title,
+    cinemaPicture,
+    genre,
+    cinemaId,
+  ) => {
     setSelectedTime(time);
-    setSelectedCinema(cinema);
+    setSelectedCinemaName(cinemaName);
     setSelectedPrice(price);
     setSelectedMovie(title);
     setSelectedCinemaPicture(cinemaPicture);
     setSelectedGenre(genre);
+    setSelectedCinemaId(cinemaId);
   };
 
   const book = () => {
+    if (!selectedTime) {
+      setAlertBook(true);
+      return;
+    }
+
     dispatch(
       chooseMovieAction({
         userId: userId,
         movieId: route.params.id,
-        cinemaId: selectedCinema,
+        cinemaName: selectedCinemaName,
         bookingDate: date,
         bookingTime: selectedTime,
         price: selectedPrice,
         movieName: selectedMovie,
         cinemaPicture: selectedCinemaPicture,
         genre: selectedGenre,
+        cinemaId: selectedCinemaId,
       }),
     );
     navigation.navigate('OrderPage');
@@ -450,18 +467,19 @@ const MovieDetails = () => {
                             schedule.title,
                             schedule.cinemapicture,
                             movieDetail.genre,
+                            schedule.cinemaid,
                           )
                         }>
                         <Text
                           style={{
                             marginRight: 28,
                             color:
-                              schedule.cinema === selectedCinema &&
+                              schedule.cinema === selectedCinemaName &&
                               time === selectedTime
                                 ? '#f1554c'
                                 : 'black',
                             fontWeight:
-                              schedule.cinema === selectedCinema &&
+                              schedule.cinema === selectedCinemaName &&
                               time === selectedTime
                                 ? 'bold'
                                 : 'normal',
@@ -489,6 +507,24 @@ const MovieDetails = () => {
                       IDR.{schedule.price}/seat
                     </Text>
                   </View>
+                  {alertBook ? (
+                    <Stack
+                      borderWidth={1}
+                      bg={'yellow.200'}
+                      borderColor={'yellow.500'}
+                      paddingVertical={5}
+                      marginBottom={2}
+                      borderRadius={2}>
+                      <Text
+                        style={{
+                          textAlign: 'center',
+                        }}>
+                        Please choose time!
+                      </Text>
+                    </Stack>
+                  ) : (
+                    false
+                  )}
                   <View>
                     <Button
                       onPress={book}

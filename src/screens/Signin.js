@@ -3,16 +3,8 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable react-native/no-inline-styles */
 import React from 'react';
+import {ScrollView, View, Text, StyleSheet} from 'react-native';
 import {
-  ScrollView,
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TextInput,
-} from 'react-native';
-import {
-  NativeBaseProvider,
   Box,
   TextArea,
   Button,
@@ -23,6 +15,7 @@ import {
   FormControl,
   WarningOutlineIcon,
   Pressable,
+  AlertDialog,
 } from 'native-base';
 import {useNavigation} from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/dist/Feather';
@@ -39,6 +32,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 54,
     backgroundColor: 'white',
+
+    paddingBottom: 95,
   },
   logotext: {
     fontFamily: 'RubikBubbles-Regular',
@@ -66,8 +61,11 @@ const SignInSchema = Yup.object().shape({
 const SignIn = () => {
   const [show, setShow] = React.useState(false);
   const [errMessage, setErrMessage] = React.useState('');
+  const [alertError, setAlertError] = React.useState(false);
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const cancelRef = React.useRef(null);
+  const onClose = () => setAlertError(false);
 
   const loginProcess = async value => {
     const email = value.email;
@@ -80,144 +78,159 @@ const SignIn = () => {
           password,
         }),
       );
-      setErrMessage(results.payload);
+      if (results.payload.startsWith('Wrong')) {
+      }
+      setAlertError(true);
     } catch (error) {
       console.log(error);
     }
   };
   return (
     <ScrollView>
-      <NativeBaseProvider>
-        <View style={styles.wrapper}>
-          <View style={{marginBottom: 46}}>
-            <Text style={styles.logotext}>Cluezzy</Text>
-          </View>
-          <View style={{marginBottom: 41}}>
-            <Text
-              style={{
-                fontSize: 26,
-                color: '#101e2b',
-                fontFamily: 'Mulish-Medium',
-                marginBottom: 12,
-                fontWeight: '600',
-              }}>
-              Sign In
-            </Text>
-            <Text
-              style={{
-                fontFamily: 'Inter-Regular',
-                color: '#8692A6',
-                fontSize: 15,
-                letterSpacing: 0.1,
-                lineHeight: 18,
-              }}>
-              Sign in with your data that you entered during your registration
-            </Text>
-          </View>
-          <Formik
-            initialValues={{
-              email: '',
-              password: '',
-            }}
-            onSubmit={loginProcess}
-            validationSchema={SignInSchema}>
-            {({handleChange, handleBlur, handleSubmit, errors, values}) => (
-              <View style={{marginBottom: 55}}>
-                <Stack style={{marginBottom: 25}}>
-                  <FormControl isInvalid>
-                    <FormControl.Label>Email</FormControl.Label>
-                    <Input
-                      onChangeText={handleChange('email')}
-                      onBlur={handleBlur('email')}
-                      value={values.email}
-                      placeholder="Write your email"
-                    />
-
-                    {errors.email && (
-                      <FormControl.ErrorMessage
-                        leftIcon={<WarningOutlineIcon size="xs" />}>
-                        {errors.email}
-                      </FormControl.ErrorMessage>
-                    )}
-                  </FormControl>
-                </Stack>
-
-                <Stack style={{marginBottom: 25}}>
-                  <FormControl isInvalid>
-                    <Text>Password</Text>
-                    <Input
-                      type={show ? 'text' : 'password'}
-                      onChangeText={handleChange('password')}
-                      onBlur={handleBlur('password')}
-                      placeholder="Write your password"
-                      InputRightElement={
-                        <Pressable onPress={() => setShow(!show)}>
-                          <Icon
-                            mr="2"
-                            size={5}
-                            as={<Feather name={show ? 'eye-off' : 'eye'} />}
-                          />
-                        </Pressable>
-                      }
-                    />
-
-                    {errors.password && (
-                      <FormControl.ErrorMessage
-                        leftIcon={<WarningOutlineIcon size="xs" />}>
-                        {errors.password}
-                      </FormControl.ErrorMessage>
-                    )}
-                  </FormControl>
-                </Stack>
-
-                <Button
-                  onPress={handleSubmit}
-                  size="lg"
-                  w="100%"
-                  _pressed={{bg: 'purple.500'}}
-                  style={{
-                    backgroundColor: '#f1554c',
-                    marginBottom: 12,
-                  }}>
-                  <Text style={{fontWeight: '700', color: 'white'}}>
-                    Sign In
-                  </Text>
-                </Button>
-
-                <Center>
-                  <Text style={{marginBottom: 10}}>
-                    Forgot your password?{' '}
-                    <Pressable
-                      onPress={() => navigation.navigate('ForgotPassword')}>
-                      <Text
-                        style={{
-                          textDecorationLine: 'underline',
-                          color: 'blue',
-                          fontWeight: '700',
-                        }}>
-                        Reset now
-                      </Text>
-                    </Pressable>
-                  </Text>
-                  <Text>
-                    Don't have an account?{' '}
-                    <Pressable onPress={() => navigation.navigate('SignUp')}>
-                      <Text
-                        style={{
-                          textDecorationLine: 'underline',
-                          color: 'blue',
-                          fontWeight: '700',
-                        }}>
-                        Sign Up
-                      </Text>
-                    </Pressable>
-                  </Text>
-                </Center>
-              </View>
-            )}
-          </Formik>
+      <View style={styles.wrapper}>
+        <View style={{marginBottom: 46}}>
+          <Text style={styles.logotext}>Cluezzy</Text>
         </View>
-      </NativeBaseProvider>
+        <View style={{marginBottom: 41}}>
+          <Text
+            style={{
+              fontSize: 26,
+              color: '#101e2b',
+              fontFamily: 'Mulish-Medium',
+              marginBottom: 12,
+              fontWeight: '600',
+            }}>
+            Sign In
+          </Text>
+          <Text
+            style={{
+              fontFamily: 'Inter-Regular',
+              color: '#8692A6',
+              fontSize: 15,
+              letterSpacing: 0.1,
+              lineHeight: 18,
+            }}>
+            Sign in with your data that you entered during your registration
+          </Text>
+        </View>
+        <Formik
+          initialValues={{
+            email: '',
+            password: '',
+          }}
+          onSubmit={loginProcess}
+          validationSchema={SignInSchema}>
+          {({handleChange, handleBlur, handleSubmit, errors, values}) => (
+            <View style={{marginBottom: 55}}>
+              <Stack style={{marginBottom: 25}}>
+                <FormControl isInvalid>
+                  <FormControl.Label>Email</FormControl.Label>
+                  <Input
+                    onChangeText={handleChange('email')}
+                    onBlur={handleBlur('email')}
+                    value={values.email}
+                    placeholder="Write your email"
+                  />
+
+                  {errors.email && (
+                    <FormControl.ErrorMessage
+                      leftIcon={<WarningOutlineIcon size="xs" />}>
+                      {errors.email}
+                    </FormControl.ErrorMessage>
+                  )}
+                </FormControl>
+              </Stack>
+
+              <Stack style={{marginBottom: 25}}>
+                <FormControl isInvalid>
+                  <FormControl.Label>Password</FormControl.Label>
+                  <Input
+                    type={show ? 'text' : 'password'}
+                    onChangeText={handleChange('password')}
+                    onBlur={handleBlur('password')}
+                    placeholder="Write your password"
+                    InputRightElement={
+                      <Pressable onPress={() => setShow(!show)}>
+                        <Icon
+                          mr="2"
+                          size={5}
+                          as={<Feather name={show ? 'eye-off' : 'eye'} />}
+                        />
+                      </Pressable>
+                    }
+                  />
+
+                  {errors.password && (
+                    <FormControl.ErrorMessage
+                      leftIcon={<WarningOutlineIcon size="xs" />}>
+                      {errors.password}
+                    </FormControl.ErrorMessage>
+                  )}
+                </FormControl>
+              </Stack>
+              {alertError ? (
+                <AlertDialog
+                  leastDestructiveRef={cancelRef}
+                  isOpen={alertError}
+                  onClose={onClose}>
+                  <AlertDialog.Content>
+                    <AlertDialog.CloseButton />
+                    <AlertDialog.Header bg={'red.200'}>
+                      <Text style={{color: 'red'}}>
+                        Wrong email or password
+                      </Text>
+                    </AlertDialog.Header>
+                  </AlertDialog.Content>
+                </AlertDialog>
+              ) : (
+                false
+              )}
+
+              <Button
+                onPress={handleSubmit}
+                size="lg"
+                w="100%"
+                _pressed={{bg: 'purple.500'}}
+                style={{
+                  backgroundColor: '#f1554c',
+                  marginBottom: 12,
+                }}>
+                <Text style={{fontWeight: '700', color: 'white'}}>Sign In</Text>
+              </Button>
+
+              <Center>
+                <Text style={{marginBottom: 10}}>
+                  Forgot your password?{' '}
+                  <Pressable
+                    onPress={() => navigation.navigate('ForgotPassword')}>
+                    <Text
+                      style={{
+                        textDecorationLine: 'underline',
+                        color: 'blue',
+                        fontWeight: '700',
+                      }}>
+                      Reset now
+                    </Text>
+                  </Pressable>
+                </Text>
+                <Text>
+                  Don't have an account?{' '}
+                  <Pressable onPress={() => navigation.navigate('SignUp')}>
+                    <Text
+                      style={{
+                        textDecorationLine: 'underline',
+                        color: 'blue',
+                        fontWeight: '700',
+                      }}>
+                      Sign Up
+                    </Text>
+                  </Pressable>
+                </Text>
+              </Center>
+            </View>
+          )}
+        </Formik>
+      </View>
     </ScrollView>
   );
 };

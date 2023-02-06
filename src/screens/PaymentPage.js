@@ -26,6 +26,7 @@ import YupPasword from 'yup-password';
 YupPasword(Yup);
 import http from '../helpers/http';
 import {trxAction} from '../redux/actions/transaction';
+import PushNotification from 'react-native-push-notification';
 
 const phoneRegExpID = /^(^08)(\d{8,10})$/;
 const formSchema = Yup.object().shape({
@@ -46,8 +47,10 @@ const PaymentPage = () => {
   const [payment, setPayment] = React.useState([]);
   const totalPrice = useSelector(state => state.transaction.totalPrice);
   const dataTransaction = useSelector(state => state.transaction);
-  const [fullName, setFullName] = React.useState('');
   const [showModal, setShowModal] = React.useState(false);
+  const [alertPayment, setAlertPayment] = React.useState(false);
+  const [alertSuccess, setAlertSuccess] = React.useState(false);
+  const [alertForm, setAlertForm] = React.useState(false);
   const [form, setForm] = React.useState({
     fullName: '',
     email: '',
@@ -73,12 +76,39 @@ const PaymentPage = () => {
   };
 
   const pay = () => {
+    if (!form.paymentMethodId) {
+      setAlertPayment(true);
+      setAlertSuccess(false);
+      return;
+    }
+    if (form.paymentMethodId) {
+      setAlertPayment(false);
+    }
+    if (!form.email) {
+      setAlertForm(true);
+      return;
+    }
+    if (!form.fullName) {
+      setAlertForm(true);
+      return;
+    }
+    if (!form.phoneNumber) {
+      setAlertForm(true);
+      return;
+    }
+
     dispatch(trxAction({...dataTransaction, ...form, token}));
     setShowModal(true);
   };
   const redirect = () => {
     setTimeout(() => {
       navigation.navigate('OrderHistory');
+
+      PushNotification.localNotification({
+        channelId: 'global_notif',
+        title: 'Order success',
+        message: 'Your seat is ready, we wait for you!',
+      });
     }, 3000);
   };
 
@@ -147,6 +177,7 @@ const PaymentPage = () => {
                   key={i}
                   size="sm"
                   variant="outline"
+                  bg={form.paymentMethodId === item.id ? 'amber.300' : 'white'}
                   style={{marginRight: 16, marginBottom: 10}}>
                   <View
                     style={{
@@ -228,7 +259,7 @@ const PaymentPage = () => {
                     Full Name
                   </Text>
                   <Input
-                    onChangeText={() => setForm({...form, fullName: fullName})}
+                    onChangeText={value => setForm({...form, fullName: value})}
                     placeholder="write your full name"
                     style={{
                       borderColor: '#dedede',
@@ -249,7 +280,7 @@ const PaymentPage = () => {
                     Email
                   </Text>
                   <Input
-                    // onChangeText={() => setForm({...form, email:email})}
+                    onChangeText={value => setForm({...form, email: value})}
                     placeholder="write your email"
                     style={{
                       borderColor: '#dedede',
@@ -270,7 +301,9 @@ const PaymentPage = () => {
                     Phone Number
                   </Text>
                   <Input
-                    // onChangeText={() => setForm({...form, phoneNumber})}
+                    onChangeText={value =>
+                      setForm({...form, phoneNumber: value})
+                    }
                     placeholder="write your phone number"
                     keyboardType="numeric"
                     style={{
@@ -293,13 +326,12 @@ const PaymentPage = () => {
               }}>
               <Modal.Content maxWidth="350" maxH="212">
                 <Modal.Header>Order status</Modal.Header>
-                <Modal.Body>
-                  Congratulations order ticket succeed! While we prepare your
-                  seat, please check other movies
-                </Modal.Body>
+                <Modal.Body>Preparing seat, please wait...</Modal.Body>
                 <Modal.Footer>
                   <Button.Group space={2}>
-                    <Button onPress={redirect}>Yay!</Button>
+                    <Button onPress={redirect} bg="#f1554c">
+                      Yay!
+                    </Button>
                   </Button.Group>
                 </Modal.Footer>
               </Modal.Content>
@@ -326,6 +358,63 @@ const PaymentPage = () => {
             </View>
           </View>
         </View>
+        {alertSuccess ? (
+          <Stack
+            borderWidth={1}
+            bg={'yellow.200'}
+            borderColor={'yellow.500'}
+            paddingVertical={5}
+            marginBottom={2}
+            borderRadius={2}
+            marginHorizontal={24}>
+            <Text
+              style={{
+                textAlign: 'center',
+              }}>
+              Your order success!
+            </Text>
+          </Stack>
+        ) : (
+          false
+        )}
+        {alertForm ? (
+          <Stack
+            borderWidth={1}
+            bg={'yellow.200'}
+            borderColor={'yellow.500'}
+            paddingVertical={5}
+            marginBottom={2}
+            borderRadius={2}
+            marginHorizontal={24}>
+            <Text
+              style={{
+                textAlign: 'center',
+              }}>
+              Please fill form correctly!
+            </Text>
+          </Stack>
+        ) : (
+          false
+        )}
+        {alertPayment ? (
+          <Stack
+            borderWidth={1}
+            bg={'yellow.200'}
+            borderColor={'yellow.500'}
+            paddingVertical={5}
+            marginBottom={2}
+            borderRadius={2}
+            marginHorizontal={24}>
+            <Text
+              style={{
+                textAlign: 'center',
+              }}>
+              Please choose payment!
+            </Text>
+          </Stack>
+        ) : (
+          false
+        )}
         <View style={{paddingHorizontal: 24}}>
           <Button
             onPress={pay}

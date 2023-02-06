@@ -32,14 +32,14 @@ import YupPasword from 'yup-password';
 YupPasword(Yup);
 import {useNavigation} from '@react-navigation/native';
 import {resetPassword} from '../redux/actions/auth';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 const styles = StyleSheet.create({
   wrapper: {
     paddingHorizontal: 24,
     paddingTop: 54,
     backgroundColor: 'white',
-    height: '100%',
+    paddingBottom: 69,
   },
   logotext: {
     fontFamily: 'RubikBubbles-Regular',
@@ -80,32 +80,35 @@ const SignUpSchema = Yup.object().shape({
     .required('Required'),
 });
 const SetPassword = () => {
+  const token = useSelector(state => state?.auth?.token);
   const [show, setShow] = React.useState(false);
   const [showConfirm, setShowConfirm] = React.useState(false);
   const [errMessage, setErrMessage] = React.useState('');
+  const [alertError, setAlertError] = React.useState(false);
   const navigation = useNavigation();
   const dispatch = useDispatch();
 
   const resetPassword = async value => {
     const code = value.code;
-    const email = value.email;
+
     const password = value.password;
     const confirmPassword = value.confirmPassword;
 
-    if (password !== confirmPassword) {
-      return setErrMessage('Password and confirm password does not match');
-    }
-
     const cb = () => {
+      setAlertError(false);
       navigation.navigate('Signin');
     };
 
     try {
-      const {data} = await dispatch(
-        resetPassword({code, email, password, confirmPassword, cb}),
-      );
+      if (password !== confirmPassword) {
+        setAlertError(true);
+      } else {
+        const results = await dispatch(
+          resetPassword({code, password, confirmPassword, token, cb}),
+        );
+      }
     } catch (error) {
-      setErrMessage('Request not found');
+      console.log(error);
     }
   };
 
@@ -144,7 +147,7 @@ const SetPassword = () => {
               password: '',
               confirmPassword: '',
             }}
-            onSubmit={values => console.log(values)}
+            onSubmit={resetPassword}
             validationSchema={SignUpSchema}>
             {({handleChange, handleBlur, handleSubmit, errors, values}) => (
               <View style={{marginBottom: 55}}>
@@ -159,10 +162,10 @@ const SetPassword = () => {
                       placeholder="Write your code"
                     />
 
-                    {errors.password && (
+                    {errors.code && (
                       <FormControl.ErrorMessage
                         leftIcon={<WarningOutlineIcon size="xs" />}>
-                        {errors.password}
+                        {errors.code}
                       </FormControl.ErrorMessage>
                     )}
                   </FormControl>
@@ -226,7 +229,25 @@ const SetPassword = () => {
                     )}
                   </FormControl>
                 </Stack>
-
+                {alertError ? (
+                  <Stack
+                    borderWidth={1}
+                    bg={'red.200'}
+                    borderColor={'red.500'}
+                    paddingVertical={5}
+                    marginBottom={2}
+                    borderRadius={2}>
+                    <Text
+                      style={{
+                        color: 'red',
+                        textAlign: 'center',
+                      }}>
+                      Password and confirm password does not match
+                    </Text>
+                  </Stack>
+                ) : (
+                  false
+                )}
                 <Button
                   onPress={handleSubmit}
                   size="lg"

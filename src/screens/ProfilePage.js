@@ -16,10 +16,10 @@ import {
   Input,
   WarningOutlineIcon,
   Icon,
+  AlertDialog,
 } from 'native-base';
 import Footer from '../components/Footer';
 
-import user from '../../assets/images/user-man.png';
 import TopNavbarUser from './TopNavbarUser';
 import {useNavigation} from '@react-navigation/native';
 import http from '../helpers/http';
@@ -31,13 +31,31 @@ import {Formik} from 'formik';
 import * as Yup from 'yup';
 import YupPasword from 'yup-password';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
-
 import {logoutAction} from '../redux/reducers/auth';
 
+const phoneRegExpID = /^(^08)(\d{8,10})$/;
 YupPasword(Yup);
-const SignUpSchema = Yup.object().shape({
+const dataProfleSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email'),
   password: Yup.string()
+    .password()
+    .min(8, 'Min lenght 8')
+    .minLowercase(1, 'Min lowercase 1')
+    .minUppercase(1, 'Min uppercase 1')
+    .minSymbols(1, 'Min symbol 1')
+    .minNumbers(1, 'Min number 1'),
+  phoneNumber: Yup.string().matches(phoneRegExpID, 'Invalid phone number'),
+});
+
+const passwordSchema = Yup.object().shape({
+  password: Yup.string()
+    .password()
+    .min(8, 'Min lenght 8')
+    .minLowercase(1, 'Min lowercase 1')
+    .minUppercase(1, 'Min uppercase 1')
+    .minSymbols(1, 'Min symbol 1')
+    .minNumbers(1, 'Min number 1'),
+  confirmPassword: Yup.string()
     .password()
     .min(8, 'Min lenght 8')
     .minLowercase(1, 'Min lowercase 1')
@@ -52,13 +70,19 @@ const ProfilePage = () => {
   const {id} = decode;
   const [alertSuccessPassword, setAlertSuccessPassword] = React.useState(false);
   const [alertSuccess, setAlertSuccess] = React.useState(false);
+  const [alertMatchPassword, setAlertMatchPassword] = React.useState(false);
+  const [alertSuccesUpload, setAlertSuccessUpload] = React.useState(false);
   const [bio, setBio] = React.useState({});
   const [show, setShow] = React.useState(false);
   const [showConfirm, setShowConfirm] = React.useState(false);
   const [uploadOption, setUploadOption] = React.useState(false);
+  const cancelRef = React.useRef(null);
   const navigation = useNavigation();
   const route = useRoute();
   const dispatch = useDispatch();
+
+  const onClose = () => setAlertSuccessUpload(false);
+
   React.useEffect(() => {
     getBio().then(data => {
       setBio(data?.results);
@@ -104,7 +128,13 @@ const ProfilePage = () => {
             },
           },
         );
-        alert(data.message);
+        setAlertSuccessUpload(true);
+        setTimeout(() => {
+          navigation.reset({
+            index: 0,
+            routes: [{name: 'ProfilePage'}],
+          });
+        }, 3000);
       } else {
         alert('Please choose image first');
       }
@@ -120,14 +150,15 @@ const ProfilePage = () => {
         lastName: value.lastName,
         phoneNumber: value.phoneNumber,
         email: value.email,
-        password: value.password,
-        confirmPassword: value.confirmPassword,
       };
       await http(token).patch(
         `https://fw12-backend-shr6.vercel.app/profile/${id}/update/`,
         values,
       );
       setAlertSuccess(true);
+      setTimeout(() => {
+        setAlertSuccess(false);
+      }, 3000);
     } catch (error) {
       console.log(error);
     }
@@ -139,11 +170,20 @@ const ProfilePage = () => {
         password: value.password,
         confirmPassword: value.confirmPassword,
       };
-      await http(token).patch(
-        `https://fw12-backend-shr6.vercel.app/profile/${id}/update/`,
-        values,
-      );
-      setAlertSuccessPassword(true);
+
+      if (value.password === value.confirmPassword) {
+        await http(token).patch(
+          `https://fw12-backend-shr6.vercel.app/profile/${id}/update/`,
+          values,
+        );
+        setAlertSuccessPassword(true);
+        setAlertMatchPassword(false);
+        setTimeout(() => {
+          setAlertSuccessPassword(false);
+        }, 3000);
+      } else {
+        setAlertMatchPassword(true);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -250,18 +290,19 @@ const ProfilePage = () => {
                   </Pressable>
 
                   {preview?.uri && (
-                    <Image
-                      source={{uri: preview?.uri}}
-                      alt="preview"
-                      style={{
-                        width: 136,
-                        height: 136,
-                        resizeMode: 'contain',
-                        borderRadius: 100,
-                        marginBottom: 10,
-                      }}
-                    />
+                    <Text style={{paddingTop: 3}}>{preview.fileName}</Text>
                   )}
+                  <AlertDialog
+                    leastDestructiveRef={cancelRef}
+                    isOpen={alertSuccesUpload}
+                    onClose={onClose}>
+                    <AlertDialog.Content>
+                      <AlertDialog.CloseButton />
+                      <AlertDialog.Header>
+                        Upload profile success
+                      </AlertDialog.Header>
+                    </AlertDialog.Content>
+                  </AlertDialog>
                 </View>
                 <View style={{alignItems: 'center'}}>
                   <Text
@@ -323,18 +364,16 @@ const ProfilePage = () => {
             lastName: '',
             phoneNumber: '',
             email: '',
-            password: '',
-            confirmPassword: '',
           }}
           onSubmit={updateProfile}
-          validationSchema={SignUpSchema}>
+          validationSchema={dataProfleSchema}>
           {({handleChange, handleBlur, handleSubmit, errors, values}) => (
-            <View style={{paddingHorizontal: 24, marginBottom: 38}}>
+            <View style={{paddingHorizontal: 24, marginBottom: 18}}>
               <View
                 style={{
                   backgroundColor: 'white',
                   paddingHorizontal: 24,
-                  paddingVertical: 40,
+                  paddingTop: 40,
                   borderRadius: 24,
                   marginBottom: 38,
                 }}>
@@ -358,12 +397,30 @@ const ProfilePage = () => {
                 <View style={{marginBottom: 55}}>
                   <Stack style={{marginBottom: 25}}>
                     <FormControl isInvalid>
-                      <FormControl.Label>Full Name</FormControl.Label>
+                      <FormControl.Label>First Name</FormControl.Label>
+                      <Input
+                        onChangeText={handleChange('firstName')}
+                        onBlur={handleBlur('firstName')}
+                        value={values.firstName}
+                        placeholder={bio.firstName}
+                      />
+
+                      {errors.firstName && (
+                        <FormControl.ErrorMessage
+                          leftIcon={<WarningOutlineIcon size="xs" />}>
+                          {errors.firstName}
+                        </FormControl.ErrorMessage>
+                      )}
+                    </FormControl>
+                  </Stack>
+                  <Stack style={{marginBottom: 25}}>
+                    <FormControl isInvalid>
+                      <FormControl.Label>Last Name</FormControl.Label>
                       <Input
                         onChangeText={handleChange('lastName')}
                         onBlur={handleBlur('lastName')}
                         value={values.lastName}
-                        placeholder={bio.firstName}
+                        placeholder={bio.lastName}
                       />
 
                       {errors.lastName && (
@@ -414,7 +471,11 @@ const ProfilePage = () => {
                   </Stack>
                   {alertSuccess ? (
                     <Stack>
-                      <Button bg="#feb05f">Profile Updated</Button>
+                      <Button bg="#00C796">
+                        <Text style={{color: 'white', fontWeight: 'bold'}}>
+                          Profile Updated
+                        </Text>
+                      </Button>
                     </Stack>
                   ) : (
                     false
@@ -436,6 +497,18 @@ const ProfilePage = () => {
                   Update changes
                 </Text>
               </Button>
+            </View>
+          )}
+        </Formik>
+        <Formik
+          initialValues={{
+            password: '',
+            confirmPassword: '',
+          }}
+          onSubmit={updatePassword}
+          validationSchema={passwordSchema}>
+          {({handleBlur, handleChange, handleSubmit, errors, values}) => (
+            <View style={{paddingHorizontal: 24, marginBottom: 18}}>
               <View style={{marginBottom: 38}}>
                 <View
                   style={{
@@ -481,7 +554,6 @@ const ProfilePage = () => {
                             </Pressable>
                           }
                         />
-
                         {errors.password && (
                           <FormControl.ErrorMessage
                             leftIcon={<WarningOutlineIcon size="xs" />}>
@@ -490,7 +562,6 @@ const ProfilePage = () => {
                         )}
                       </FormControl>
                     </Stack>
-
                     <Stack style={{marginBottom: 25}}>
                       <FormControl isInvalid>
                         <FormControl.Label>Confirm Password</FormControl.Label>
@@ -525,9 +596,29 @@ const ProfilePage = () => {
                         )}
                       </FormControl>
                     </Stack>
-                    {alertSuccess ? (
+                    {alertSuccessPassword ? (
                       <Stack>
-                        <Button bg="#feb05f">Profile Updated</Button>
+                        <Button bg="#00C796">
+                          <Text style={{color: 'white', fontWeight: 'bold'}}>
+                            Password Updated
+                          </Text>
+                        </Button>
+                      </Stack>
+                    ) : (
+                      false
+                    )}
+                    {alertMatchPassword ? (
+                      <Stack>
+                        <Button bg="#feb05f">
+                          <Text
+                            style={{
+                              color: 'white',
+                              fontWeight: 'bold',
+                              textAlign: 'center',
+                            }}>
+                            Password and confirm password does not match
+                          </Text>
+                        </Button>
                       </Stack>
                     ) : (
                       false

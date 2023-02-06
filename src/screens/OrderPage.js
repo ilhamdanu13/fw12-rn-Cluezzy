@@ -5,7 +5,7 @@
 import React from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {View, Text, ScrollView} from 'react-native';
-import {Center, NativeBaseProvider, Button, HStack, Image} from 'native-base';
+import {Center, Pressable, Button, HStack, Image, Stack} from 'native-base';
 import Icon from 'react-native-vector-icons/dist/Feather';
 
 import Footer from '../components/Footer';
@@ -17,11 +17,12 @@ import {chooseSeat} from '../redux/reducers/transaction';
 
 const OrderPage = () => {
   const [selectedSeat, setSelectedSeat] = React.useState([]);
+  const [alertSeat, setAlertSeat] = React.useState(false);
   const movieName = useSelector(state => state.transaction.movieName);
   const bookingDate = useSelector(state => state.transaction.bookingDate);
   const bookingTime = useSelector(state => state.transaction.bookingTime);
   const price = useSelector(state => state.transaction.price);
-  const cinema = useSelector(state => state.transaction.cinema);
+  const cinemaName = useSelector(state => state.transaction.cinemaName);
   const cinemaPicture = useSelector(state => state.transaction.cinemaPicture);
 
   const dispatch = useDispatch();
@@ -35,7 +36,6 @@ const OrderPage = () => {
   let month = NewDate.split(' ')[1];
   let dates = NewDate.split(' ')[2];
   let year = NewDate.split(' ')[3];
-  let day = NewDate.split(' ')[4];
 
   const onChangeSeat = seatNum => {
     if (selectedSeat.includes(seatNum)) {
@@ -46,6 +46,11 @@ const OrderPage = () => {
   };
 
   const checkout = () => {
+    if (!selectedSeat.length) {
+      setAlertSeat(true);
+      return;
+    }
+    setAlertSeat(false);
     dispatch(
       chooseSeat({
         seatNumber: selectedSeat.join(', '),
@@ -97,7 +102,7 @@ const OrderPage = () => {
                 marginHorizontal: 16,
                 marginBottom: 16,
               }}></View>
-            <View style={{marginLeft: 8, marginRight: 8, marginBottom: 40}}>
+            <View style={{marginLeft: 15, marginRight: 2, marginBottom: 40}}>
               <View
                 style={{
                   borderLeftWidth: 2,
@@ -105,12 +110,80 @@ const OrderPage = () => {
                   borderLeftColor: '#00BA88',
                 }}></View>
               <HStack space={4}>
-                <SeatGrid selected={selectedSeat} onChange={onChangeSeat} />
+                <Stack style={{}}>
+                  {['A', 'B', 'C', 'D', 'E', 'F', 'G'].map((rows, i) => {
+                    return (
+                      <View key={i} style={{flexDirection: 'row'}}>
+                        {[1, 2, 3, 4, 5, 6, 7].map((num, i) => {
+                          return (
+                            <Pressable
+                              key={i}
+                              onPress={() => onChangeSeat(rows + num)}
+                              bg={
+                                selectedSeat.includes(rows + num)
+                                  ? '#f1554c'
+                                  : '#D6D8E7'
+                              }
+                              style={{
+                                width: 14,
+                                height: 14,
+                                borderRadius: 2,
+                                marginRight: 5,
+                                marginBottom: 5,
+                              }}></Pressable>
+                          );
+                        })}
+                      </View>
+                    );
+                  })}
+                </Stack>
+
+                <Stack
+                  style={{
+                    borderLeftWidth: 2,
+                    borderColor: '#D6D8E7',
+                    height: 128,
+                  }}></Stack>
+
+                <Stack
+                  style={{
+                    borderLeftWidth: 2,
+                    borderColor: '#D6D8E7',
+                    height: 128,
+                  }}></Stack>
+                <Stack style={{}}>
+                  {['A', 'B', 'C', 'D', 'E', 'F', 'G'].map((rows, i) => {
+                    return (
+                      <View key={i} style={{flexDirection: 'row'}}>
+                        {[8, 9, 10, 11, 12, 13, 14].map((num, i) => {
+                          return (
+                            <Pressable
+                              key={i}
+                              onPress={() => onChangeSeat(rows + num)}
+                              bg={
+                                selectedSeat.includes(rows + num)
+                                  ? '#f1554c'
+                                  : '#D6D8E7'
+                              }
+                              style={{
+                                width: 14,
+                                height: 14,
+                                borderRadius: 2,
+                                marginRight: 5,
+                                marginBottom: 5,
+                              }}></Pressable>
+                          );
+                        })}
+                      </View>
+                    );
+                  })}
+                </Stack>
+                {/* <SeatGrid selected={selectedSeat} onChange={onChangeSeat} />
                 <SeatGrid
                   selected={selectedSeat}
                   onChange={onChangeSeat}
                   startNum={8}
-                />
+                /> */}
               </HStack>
             </View>
             <View style={{paddingHorizontal: 33}}>
@@ -215,41 +288,40 @@ const OrderPage = () => {
               marginBottom: 50,
               elevation: 5,
             }}>
-            <NativeBaseProvider>
-              <Center style={{marginBottom: 27}}>
-                <View style={{marginBottom: 7}}>
-                  <Image
-                    source={{uri: cinemaPicture}}
-                    alt={cinema}
-                    size={10}
-                    width={32}
-                    resizeMode="contain"
-                  />
-                </View>
-                <View style={{alignItems: 'center', justifyContent: 'center'}}>
-                  <Text
-                    style={{
-                      fontSize: 24,
-                      color: '#101e2b',
-                      fontFamily: 'Mulish-Medium',
-                      fontWeight: '600',
-                      marginBottom: 7,
-                    }}>
-                    {cinema}
-                  </Text>
-                  <Text
-                    style={{
-                      color: '#101e2b',
-                      fontFamily: 'Mulish-Medium',
-                      fontWeight: '600',
-                      fontSize: 24,
-                      flexWrap: 'wrap',
-                    }}>
-                    {movieName}
-                  </Text>
-                </View>
-              </Center>
-            </NativeBaseProvider>
+            <Center style={{marginBottom: 27}}>
+              <View style={{marginBottom: 7}}>
+                <Image
+                  source={{uri: cinemaPicture}}
+                  alt="cinema"
+                  size={10}
+                  width={32}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={{alignItems: 'center', justifyContent: 'center'}}>
+                <Text
+                  style={{
+                    fontSize: 24,
+                    color: '#101e2b',
+                    fontFamily: 'Mulish-Medium',
+                    fontWeight: '600',
+                    marginBottom: 7,
+                  }}>
+                  {cinemaName}
+                </Text>
+                <Text
+                  style={{
+                    color: '#101e2b',
+                    fontFamily: 'Mulish-Medium',
+                    fontWeight: '600',
+                    fontSize: 24,
+                    flexWrap: 'wrap',
+                  }}>
+                  {movieName}
+                </Text>
+              </View>
+            </Center>
+
             <View style={{paddingHorizontal: 20, marginBottom: 32}}>
               <View>
                 <View style={{flexDirection: 'row', marginBottom: 11}}>
@@ -327,18 +399,35 @@ const OrderPage = () => {
             </View>
           </View>
         </View>
-        <NativeBaseProvider>
-          <View style={{paddingHorizontal: 24}}>
-            <Button
-              onPress={checkout}
-              size="lg"
-              style={{backgroundColor: '#f1554c', marginBottom: 50}}>
-              <Text style={{color: 'white', fontSize: 16, fontWeight: '700'}}>
-                Checkout now
-              </Text>
-            </Button>
-          </View>
-        </NativeBaseProvider>
+        {alertSeat ? (
+          <Stack
+            borderWidth={1}
+            bg={'yellow.200'}
+            borderColor={'yellow.500'}
+            paddingVertical={5}
+            marginBottom={2}
+            borderRadius={2}
+            marginHorizontal={24}>
+            <Text
+              style={{
+                textAlign: 'center',
+              }}>
+              Please choose seat!
+            </Text>
+          </Stack>
+        ) : (
+          false
+        )}
+        <View style={{paddingHorizontal: 24}}>
+          <Button
+            onPress={checkout}
+            size="lg"
+            style={{backgroundColor: '#f1554c', marginBottom: 50}}>
+            <Text style={{color: 'white', fontSize: 16, fontWeight: '700'}}>
+              Checkout now
+            </Text>
+          </Button>
+        </View>
       </View>
       <Footer />
     </ScrollView>
