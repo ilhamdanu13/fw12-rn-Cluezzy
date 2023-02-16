@@ -16,7 +16,7 @@ This web app require:
 
 First, clone this repo:
 ```bash
-  https://github.com/ilhamdanu13/fw12-frontend.git
+  https://github.com/ilhamdanu13/fw12-rn-Cluezzy
 ```
 Go to the project directory
 
